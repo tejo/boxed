@@ -38,15 +38,10 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
 func Login(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	_, err := s.ObtainRequestToken()
-	if err != nil {
-		log.Fatal(err)
-		s = NewDropboxSession()
-		s.ObtainRequestToken()
-	}
+	s.ObtainRequestToken()
 	http.Redirect(w, r, dropbox.GenerateAuthorizeUrl(s.Token.Key, &dropbox.Parameters{
 		OAuthCallback: "http://localhost:8080/oauth/callback",
-	}), 301)
+	}), 302)
 }
 
 func Callback(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
@@ -55,14 +50,14 @@ func Callback(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	session.Values["key"] = token.Key
 	session.Values["secret"] = token.Secret
 	session.Save(r, w)
-	http.Redirect(w, r, "/", 301)
+	http.Redirect(w, r, "/", 302)
 }
 
 func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	session, _ := store.Get(r, "godropblog")
 
 	if key, secret := session.Values["key"], session.Values["secret"]; key == nil && secret == nil {
-		http.Redirect(w, r, "/login", 301)
+		http.Redirect(w, r, "/login", 302)
 		return
 	} else {
 		s.Token.Key = key.(string)
