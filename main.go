@@ -17,27 +17,15 @@ import (
 
 var store = sessions.NewCookieStore([]byte("182hetsgeih8765$aasdhj"))
 
-type User struct {
-	DropboxID string
-	Name      string
-}
-
 var AppToken = dropbox.AppToken{
 	Key:    "2vhv4i5dqyl92l1",
 	Secret: "0k1q9zpbt1x3czk",
 }
 
-var RequestToken dropbox.RequestToken
-var AccessToken dropbox.AccessToken
 var callbackUrl = "http://localhost:8080/oauth/callback"
-
 var db *bolt.DB
 
 func init() {
-	gob.Register(dropbox.RequestToken{})
-}
-
-func main() {
 	store.Options = &sessions.Options{
 		Path:     "/",
 		MaxAge:   86400 * 30 * 12,
@@ -48,7 +36,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer db.Close()
 
 	db.Update(func(tx *bolt.Tx) error {
 		_, err := tx.CreateBucketIfNotExists([]byte("UserData"))
@@ -57,6 +44,11 @@ func main() {
 		}
 		return nil
 	})
+	gob.Register(dropbox.RequestToken{})
+}
+
+func main() {
+	defer db.Close()
 
 	router := httprouter.New()
 	router.GET("/", Index)
@@ -67,7 +59,7 @@ func main() {
 }
 func Login(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	session, _ := store.Get(r, "godropblog")
-	RequestToken, _ = dropbox.StartAuth(AppToken)
+	RequestToken, _ := dropbox.StartAuth(AppToken)
 	session.Values["RequestToken"] = RequestToken
 	session.Save(r, w)
 	url, _ := url.Parse(callbackUrl)
@@ -78,7 +70,7 @@ func Login(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 func Callback(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	session, _ := store.Get(r, "godropblog")
 	RequestToken := session.Values["RequestToken"].(dropbox.RequestToken)
-	AccessToken, _ = dropbox.FinishAuth(AppToken, RequestToken)
+	AccessToken, _ := dropbox.FinishAuth(AppToken, RequestToken)
 	info, err := dbClient(AccessToken).GetAccountInfo()
 	if err != nil {
 		log.Println(err)
@@ -92,8 +84,7 @@ func Callback(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		err = b.Put([]byte(uid), []byte(i))
 		return err
 	})
-	session.Values["key"] = AccessToken.Key
-	session.Values["secret"] = AccessToken.Secret
+	session.Values["uid"] = info.Uid
 	session.Save(r, w)
 	fmt.Printf("AccessToken = %+v\n", AccessToken)
 	http.Redirect(w, r, "/", 302)
@@ -101,16 +92,24 @@ func Callback(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	session, _ := store.Get(r, "godropblog")
+	var AccessToken dropbox.AccessToken
 
-	if key, secret := session.Values["key"], session.Values["secret"]; key == nil && secret == nil {
-		// http.Redirect(w, r, "/login", 302)
+	if uid := session.Values["uid"]; uid == nil {
+		log.Println("no uid found")
 		return
 	} else {
-		AccessToken.Key = key.(string)
-		AccessToken.Secret = secret.(string)
+		uid := strconv.Itoa(int(session.Values["uid"].(uint64)))
+		db.View(func(tx *bolt.Tx) error {
+			b := tx.Bucket([]byte("UserData"))
+			token := b.Get([]byte(uid + ":token"))
+			json.Unmarshal(token, &AccessToken)
+			fmt.Printf("The answer is: %s\n", AccessToken)
+			return nil
+		})
 	}
 	db := dbClient(AccessToken)
 	info, err := db.GetAccountInfo()
+	fmt.Printf("err = %+v\n", err)
 
 	if err != nil {
 		//access token is not valid anymore
@@ -134,7 +133,7 @@ func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 func dbClient(t dropbox.AccessToken) *dropbox.Client {
 	return &dropbox.Client{
 		AppToken:    AppToken,
-		AccessToken: AccessToken,
+		AccessToken: t,
 		Config: dropbox.Config{
 			Access: dropbox.AppFolder,
 			Locale: "us",
