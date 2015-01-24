@@ -14,7 +14,8 @@ import (
 const TimeFormat = time.RFC1123Z
 
 type OAuthToken struct {
-	Key, Secret string
+	Key    string `json:"key"`
+	Secret string `json:"secret"`
 }
 
 type token interface {
