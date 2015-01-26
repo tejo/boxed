@@ -75,6 +75,7 @@ func main() {
 	router.GET("/account", Account)
 	router.GET("/r", Refresh)
 	router.GET("/oauth/callback", Callback)
+	router.GET("/:year/:month/day/:articleslug", ArticleHandler)
 
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
@@ -156,13 +157,31 @@ func Callback(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	})
 }
 
+func ArticleHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	fmt.Printf("ps = %+v\n", ps.ByName("articleslug"))
+	db.View(func(tx *bolt.Tx) error {
+		c := tx.Bucket([]byte("UserArticles")).Cursor()
+
+		prefix := []byte(defaultUserId + ":article:")
+		for k, v := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, v = c.Next() {
+			var a Article
+			json.Unmarshal(v, &a)
+			fmt.Fprint(w, a.Path)
+		}
+
+		return nil
+	})
+}
+
 func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	db.View(func(tx *bolt.Tx) error {
 		c := tx.Bucket([]byte("UserArticles")).Cursor()
 
 		prefix := []byte(defaultUserId + ":article:")
 		for k, v := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, v = c.Next() {
-			fmt.Fprintf(w, "key=%s, value=%s\n", k, v)
+			var a Article
+			json.Unmarshal(v, &a)
+			fmt.Fprint(w, a.Path)
 		}
 
 		return nil
