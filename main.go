@@ -9,7 +9,6 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-	"strconv"
 
 	"github.com/boltdb/bolt"
 	"github.com/gorilla/sessions"
@@ -25,7 +24,7 @@ var AppToken = dropbox.AppToken{
 }
 
 const (
-	defaultUserId = "5384198"
+	defaultUserEmail = "m.parmi@gmail.com"
 )
 
 var callbackUrl = "http://localhost:8080/oauth/callback"
@@ -75,7 +74,7 @@ func main() {
 	router.GET("/account", Account)
 	router.GET("/r", Refresh)
 	router.GET("/oauth/callback", Callback)
-	router.GET("/:year/:month/day/:articleslug", ArticleHandler)
+	router.GET("/a/:year/:month/day/:slug", ArticleHandler)
 
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
@@ -90,7 +89,7 @@ func Refresh(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	var at dropbox.AccessToken
 	db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("UserData"))
-		token := b.Get([]byte(defaultUserId + ":token"))
+		token := b.Get([]byte(defaultUserEmail + ":token"))
 		json.Unmarshal(token, &at)
 		fmt.Printf("The answer is: %s\n", at)
 		return nil
@@ -105,7 +104,7 @@ func Refresh(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		file, _ := dbClient(at).GetFile(entry.Path)
 		content, _ := ioutil.ReadAll(file)
 		article := &Article{
-			Key:          defaultUserId + ":article:" + entry.Path,
+			Key:          defaultUserEmail + ":article:" + entry.Path,
 			Content:      string(github_flavored_markdown.Markdown(content)),
 			FileMetadata: entry,
 		}
@@ -143,13 +142,12 @@ func Callback(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		db.Update(func(tx *bolt.Tx) error {
 			b := tx.Bucket([]byte("UserData"))
 			t, _ := json.Marshal(AccessToken)
-			uid := strconv.Itoa(int(info.Uid))
-			err := b.Put([]byte(uid+":token"), []byte(t))
+			err := b.Put([]byte(info.Email+":token"), []byte(t))
 			i, _ := json.Marshal(info)
-			err = b.Put([]byte(uid), []byte(i))
+			err = b.Put([]byte(info.Email), []byte(i))
 			return err
 		})
-		session.Values["uid"] = info.Uid
+		session.Values["email"] = info.Email
 		session.Save(r, w)
 		dbc.CreateDir("drafts")
 		dbc.CreateDir("published")
@@ -162,7 +160,7 @@ func ArticleHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params
 	db.View(func(tx *bolt.Tx) error {
 		c := tx.Bucket([]byte("UserArticles")).Cursor()
 
-		prefix := []byte(defaultUserId + ":article:")
+		prefix := []byte(defaultUserEmail + ":article:")
 		for k, v := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, v = c.Next() {
 			var a Article
 			json.Unmarshal(v, &a)
@@ -177,7 +175,7 @@ func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	db.View(func(tx *bolt.Tx) error {
 		c := tx.Bucket([]byte("UserArticles")).Cursor()
 
-		prefix := []byte(defaultUserId + ":article:")
+		prefix := []byte(defaultUserEmail + ":article:")
 		for k, v := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, v = c.Next() {
 			var a Article
 			json.Unmarshal(v, &a)
@@ -192,14 +190,14 @@ func Account(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	withSession(w, r, func(session *sessions.Session) {
 		var AccessToken dropbox.AccessToken
 
-		if uid := session.Values["uid"]; uid == nil {
-			fmt.Fprint(w, "no uid found")
+		if email := session.Values["email"]; email == nil {
+			fmt.Fprint(w, "no email found")
 			return
 		} else {
-			uid := strconv.Itoa(int(session.Values["uid"].(uint64)))
+			email := session.Values["email"].(string)
 			db.View(func(tx *bolt.Tx) error {
 				b := tx.Bucket([]byte("UserData"))
-				token := b.Get([]byte(uid + ":token"))
+				token := b.Get([]byte(email + ":token"))
 				json.Unmarshal(token, &AccessToken)
 				return nil
 			})
@@ -209,7 +207,7 @@ func Account(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		if err != nil {
 			// access token is not valid anymore
 			// reset session
-			session.Values["uid"] = ""
+			session.Values["email"] = ""
 			session.Save(r, w)
 			fmt.Fprint(w, "access token not valid")
 			return
