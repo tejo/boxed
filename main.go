@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 
 	"github.com/boltdb/bolt"
 	"github.com/gorilla/sessions"
@@ -18,14 +19,8 @@ import (
 	"github.com/tejo/dropbox"
 )
 
-var AppToken = dropbox.AppToken{
-	Key:    "2vhv4i5dqyl92l1",
-	Secret: "0k1q9zpbt1x3czk",
-}
-
-const (
-	defaultUserEmail = "m.parmi@gmail.com"
-)
+var AppToken dropbox.AppToken
+var defaultUserEmail string
 
 var callbackUrl = "http://localhost:8080/oauth/callback"
 var db *bolt.DB
@@ -43,6 +38,11 @@ func withSession(w http.ResponseWriter, r *http.Request, fn func(*sessions.Sessi
 }
 
 func init() {
+	defaultUserEmail = os.Getenv("DEFAULT_USER_EMAIL")
+	AppToken = dropbox.AppToken{
+		Key:    os.Getenv("KEY"),
+		Secret: os.Getenv("SECRET"),
+	}
 	var err error
 	db, err = bolt.Open("blog.db", 0600, nil)
 	if err != nil {
