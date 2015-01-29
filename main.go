@@ -83,7 +83,7 @@ func Callback(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	withSession(w, r, func(session *sessions.Session) {
 		RequestToken := session.Values["RequestToken"].(dropbox.RequestToken)
 		AccessToken, _ := dropbox.FinishAuth(config.AppToken, RequestToken)
-		dbc := dbClient(AccessToken)
+		dbc := dropbox.NewClient(AccessToken, config.AppToken)
 		info, err := dbc.GetAccountInfo()
 		if err != nil {
 			log.Println(err)
@@ -139,8 +139,8 @@ func Account(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 			email := session.Values["email"].(string)
 			AccessToken, _ = datastore.LoadUserToken(email)
 		}
-		db := dbClient(AccessToken)
-		info, err := db.GetAccountInfo()
+		dbc := dropbox.NewClient(AccessToken, config.AppToken)
+		info, err := dbc.GetAccountInfo()
 		if err != nil {
 			// access token is not valid anymore
 			// reset session
@@ -151,16 +151,6 @@ func Account(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		}
 		fmt.Fprintf(w, "info = %+v\n", info)
 	})
-}
-
-func dbClient(t dropbox.AccessToken) *dropbox.Client {
-	return &dropbox.Client{
-		AppToken:    config.AppToken,
-		AccessToken: t,
-		Config: dropbox.Config{
-			Access: dropbox.AppFolder,
-			Locale: "us",
-		}}
 }
 
 func withSession(w http.ResponseWriter, r *http.Request, fn func(*sessions.Session)) {

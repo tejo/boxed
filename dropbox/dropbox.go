@@ -23,6 +23,16 @@ type token interface {
 	secret() string
 }
 
+func NewClient(at AccessToken, apt AppToken) *Client {
+	return &Client{
+		AppToken:    apt,
+		AccessToken: at,
+		Config: Config{
+			Access: AppFolder,
+			Locale: "us",
+		}}
+}
+
 func buildAuthString(consumerToken AppToken, tok token) string {
 	var buf bytes.Buffer
 	buf.WriteString(`OAuth oauth_version="1.0", oauth_signature_method="PLAINTEXT"`)
