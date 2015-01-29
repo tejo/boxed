@@ -16,7 +16,8 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/markbates/going/wait"
 	"github.com/shurcooL/go/github_flavored_markdown"
-	"github.com/tejo/dropbox"
+	"github.com/tejo/g-blog/datastore"
+	"github.com/tejo/g-blog/dropbox"
 )
 
 var AppToken dropbox.AppToken
@@ -25,48 +26,15 @@ var defaultUserEmail string
 var callbackUrl = "http://localhost:8080/oauth/callback"
 var db *bolt.DB
 
-func withSession(w http.ResponseWriter, r *http.Request, fn func(*sessions.Session)) {
-	gob.Register(dropbox.RequestToken{})
-	store := sessions.NewCookieStore([]byte("182hetsgeih8765$aasdhj"))
-	store.Options = &sessions.Options{
-		Path:     "/",
-		MaxAge:   86400 * 30 * 12,
-		HttpOnly: true,
-	}
-	session, _ := store.Get(r, "godropblog")
-	fn(session)
-}
-
-func init() {
+func main() {
 	defaultUserEmail = os.Getenv("DEFAULT_USER_EMAIL")
 	AppToken = dropbox.AppToken{
 		Key:    os.Getenv("KEY"),
 		Secret: os.Getenv("SECRET"),
 	}
-	var err error
-	db, err = bolt.Open("blog.db", 0600, nil)
-	if err != nil {
-		log.Fatal(err)
-	}
 
-	db.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists([]byte("UserData"))
-		if err != nil {
-			return fmt.Errorf("create bucket: %s", err)
-		}
-		return nil
-	})
-	db.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists([]byte("UserArticles"))
-		if err != nil {
-			return fmt.Errorf("create bucket: %s", err)
-		}
-		return nil
-	})
-}
-
-func main() {
-	defer db.Close()
+	datastore.Connect("blog.db")
+	defer datastore.Close()
 
 	router := httprouter.New()
 	router.GET("/", Index)
@@ -129,7 +97,7 @@ func Login(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 }
 
 // saves the user id in session, save used data and access token in
-// db creates the default folders
+// db, creates the default folders
 func Callback(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	withSession(w, r, func(session *sessions.Session) {
 		RequestToken := session.Values["RequestToken"].(dropbox.RequestToken)
@@ -139,14 +107,7 @@ func Callback(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		if err != nil {
 			log.Println(err)
 		}
-		db.Update(func(tx *bolt.Tx) error {
-			b := tx.Bucket([]byte("UserData"))
-			t, _ := json.Marshal(AccessToken)
-			err := b.Put([]byte(info.Email+":token"), []byte(t))
-			i, _ := json.Marshal(info)
-			err = b.Put([]byte(info.Email), []byte(i))
-			return err
-		})
+		datastore.SaveUserData(info, AccessToken)
 		session.Values["email"] = info.Email
 		session.Save(r, w)
 		dbc.CreateDir("drafts")
@@ -195,12 +156,7 @@ func Account(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 			return
 		} else {
 			email := session.Values["email"].(string)
-			db.View(func(tx *bolt.Tx) error {
-				b := tx.Bucket([]byte("UserData"))
-				token := b.Get([]byte(email + ":token"))
-				json.Unmarshal(token, &AccessToken)
-				return nil
-			})
+			AccessToken, _ = datastore.LoadUserToken(email)
 		}
 		db := dbClient(AccessToken)
 		info, err := db.GetAccountInfo()
@@ -224,4 +180,16 @@ func dbClient(t dropbox.AccessToken) *dropbox.Client {
 			Access: dropbox.AppFolder,
 			Locale: "us",
 		}}
+}
+
+func withSession(w http.ResponseWriter, r *http.Request, fn func(*sessions.Session)) {
+	gob.Register(dropbox.RequestToken{})
+	store := sessions.NewCookieStore([]byte("182hetsgeih8765$aasdhj"))
+	store.Options = &sessions.Options{
+		Path:     "/",
+		MaxAge:   86400 * 30 * 12,
+		HttpOnly: true,
+	}
+	session, _ := store.Get(r, "godropblog")
+	fn(session)
 }
