@@ -1,50 +1,31 @@
 package main
 
 import (
-	"bytes"
 	"encoding/gob"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
-	"os"
 
-	"github.com/boltdb/bolt"
 	"github.com/gorilla/sessions"
 	"github.com/julienschmidt/httprouter"
-	"github.com/markbates/going/wait"
-	"github.com/shurcooL/go/github_flavored_markdown"
 	"github.com/tejo/boxed/datastore"
 	"github.com/tejo/boxed/dropbox"
 )
 
-var AppToken dropbox.AppToken
-var defaultUserEmail string
-
-var callbackUrl = "http://localhost:8080/oauth/callback"
-var db *bolt.DB
-
 func main() {
-	defaultUserEmail = os.Getenv("DEFAULT_USER_EMAIL")
-	AppToken = dropbox.AppToken{
-		Key:    os.Getenv("KEY"),
-		Secret: os.Getenv("SECRET"),
-	}
-
 	datastore.Connect("blog.db")
 	defer datastore.Close()
 
 	router := httprouter.New()
-	router.GET("/", Index)
+	// router.GET("/", Index)
 	router.GET("/login", Login)
 	router.GET("/account", Account)
-	router.GET("/r", Refresh)
+	// router.GET("/r", Refresh)
 	router.GET("/oauth/callback", Callback)
-	router.GET("/a/:year/:month/day/:slug", ArticleHandler)
+	// router.GET("/a/:year/:month/day/:slug", ArticleHandler)
 
-	log.Fatal(http.ListenAndServe(":8080", router))
+	log.Fatal(http.ListenAndServe(config.Port, router))
 }
 
 type Article struct {
@@ -53,43 +34,43 @@ type Article struct {
 	dropbox.FileMetadata
 }
 
-func Refresh(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	var at dropbox.AccessToken
-	db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("UserData"))
-		token := b.Get([]byte(defaultUserEmail + ":token"))
-		json.Unmarshal(token, &at)
-		fmt.Printf("The answer is: %s\n", at)
-		return nil
-	})
-	meta, _ := dbClient(at).GetMetadata("/published", true)
-	fmt.Printf("meta.Contents = %+v\n", meta.Contents)
-	wait.Wait(len(meta.Contents), func(index int) {
-		entry := meta.Contents[index]
-		if entry.IsDir {
-			return
-		}
-		file, _ := dbClient(at).GetFile(entry.Path)
-		content, _ := ioutil.ReadAll(file)
-		article := &Article{
-			Key:          defaultUserEmail + ":article:" + entry.Path,
-			Content:      string(github_flavored_markdown.Markdown(content)),
-			FileMetadata: entry,
-		}
-		db.Update(func(tx *bolt.Tx) error {
-			b := tx.Bucket([]byte("UserArticles"))
-			a, err := json.Marshal(article)
-			err = b.Put([]byte(article.Key), []byte(a))
-			return err
-		})
-	})
-}
+// func Refresh(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+// 	var at dropbox.AccessToken
+// 	db.View(func(tx *bolt.Tx) error {
+// 		b := tx.Bucket([]byte("UserData"))
+// 		token := b.Get([]byte(defaultUserEmail + ":token"))
+// 		json.Unmarshal(token, &at)
+// 		fmt.Printf("The answer is: %s\n", at)
+// 		return nil
+// 	})
+// 	meta, _ := dbClient(at).GetMetadata("/published", true)
+// 	fmt.Printf("meta.Contents = %+v\n", meta.Contents)
+// 	wait.Wait(len(meta.Contents), func(index int) {
+// 		entry := meta.Contents[index]
+// 		if entry.IsDir {
+// 			return
+// 		}
+// 		file, _ := dbClient(at).GetFile(entry.Path)
+// 		content, _ := ioutil.ReadAll(file)
+// 		article := &Article{
+// 			Key:          defaultUserEmail + ":article:" + entry.Path,
+// 			Content:      string(github_flavored_markdown.Markdown(content)),
+// 			FileMetadata: entry,
+// 		}
+// 		db.Update(func(tx *bolt.Tx) error {
+// 			b := tx.Bucket([]byte("UserArticles"))
+// 			a, err := json.Marshal(article)
+// 			err = b.Put([]byte(article.Key), []byte(a))
+// 			return err
+// 		})
+// 	})
+// }
 
 func Login(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	withSession(w, r, func(session *sessions.Session) {
-		RequestToken, _ := dropbox.StartAuth(AppToken)
+		RequestToken, _ := dropbox.StartAuth(config.AppToken)
 		session.Values["RequestToken"] = RequestToken
-		url, _ := url.Parse(callbackUrl)
+		url, _ := url.Parse(config.CallbackUrl)
 		authUrl := dropbox.GetAuthorizeURL(RequestToken, url)
 		session.Save(r, w)
 		http.Redirect(w, r, authUrl.String(), 302)
@@ -101,7 +82,7 @@ func Login(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 func Callback(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	withSession(w, r, func(session *sessions.Session) {
 		RequestToken := session.Values["RequestToken"].(dropbox.RequestToken)
-		AccessToken, _ := dropbox.FinishAuth(AppToken, RequestToken)
+		AccessToken, _ := dropbox.FinishAuth(config.AppToken, RequestToken)
 		dbc := dbClient(AccessToken)
 		info, err := dbc.GetAccountInfo()
 		if err != nil {
@@ -116,36 +97,36 @@ func Callback(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	})
 }
 
-func ArticleHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	fmt.Printf("ps = %+v\n", ps.ByName("articleslug"))
-	db.View(func(tx *bolt.Tx) error {
-		c := tx.Bucket([]byte("UserArticles")).Cursor()
+// func ArticleHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+// 	fmt.Printf("ps = %+v\n", ps.ByName("articleslug"))
+// 	db.View(func(tx *bolt.Tx) error {
+// 		c := tx.Bucket([]byte("UserArticles")).Cursor()
 
-		prefix := []byte(defaultUserEmail + ":article:")
-		for k, v := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, v = c.Next() {
-			var a Article
-			json.Unmarshal(v, &a)
-			fmt.Fprint(w, a.Path)
-		}
+// 		prefix := []byte(defaultUserEmail + ":article:")
+// 		for k, v := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, v = c.Next() {
+// 			var a Article
+// 			json.Unmarshal(v, &a)
+// 			fmt.Fprint(w, a.Path)
+// 		}
 
-		return nil
-	})
-}
+// 		return nil
+// 	})
+// }
 
-func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	db.View(func(tx *bolt.Tx) error {
-		c := tx.Bucket([]byte("UserArticles")).Cursor()
+// func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+// 	db.View(func(tx *bolt.Tx) error {
+// 		c := tx.Bucket([]byte("UserArticles")).Cursor()
 
-		prefix := []byte(defaultUserEmail + ":article:")
-		for k, v := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, v = c.Next() {
-			var a Article
-			json.Unmarshal(v, &a)
-			fmt.Fprint(w, a.Path)
-		}
+// 		prefix := []byte(defaultUserEmail + ":article:")
+// 		for k, v := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, v = c.Next() {
+// 			var a Article
+// 			json.Unmarshal(v, &a)
+// 			fmt.Fprint(w, a.Path)
+// 		}
 
-		return nil
-	})
-}
+// 		return nil
+// 	})
+// }
 
 func Account(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	withSession(w, r, func(session *sessions.Session) {
@@ -174,7 +155,7 @@ func Account(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 func dbClient(t dropbox.AccessToken) *dropbox.Client {
 	return &dropbox.Client{
-		AppToken:    AppToken,
+		AppToken:    config.AppToken,
 		AccessToken: t,
 		Config: dropbox.Config{
 			Access: dropbox.AppFolder,
