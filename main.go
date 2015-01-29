@@ -16,8 +16,8 @@ import (
 	"github.com/julienschmidt/httprouter"
 	"github.com/markbates/going/wait"
 	"github.com/shurcooL/go/github_flavored_markdown"
-	"github.com/tejo/g-blog/datastore"
-	"github.com/tejo/g-blog/dropbox"
+	"github.com/tejo/boxed/datastore"
+	"github.com/tejo/boxed/dropbox"
 )
 
 var AppToken dropbox.AppToken

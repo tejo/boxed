@@ -6,8 +6,8 @@ import (
 
 	"github.com/boltdb/bolt"
 	"github.com/stretchr/testify/assert"
-	"github.com/tejo/g-blog/datastore"
-	"github.com/tejo/g-blog/dropbox"
+	"github.com/tejo/boxed/datastore"
+	"github.com/tejo/boxed/dropbox"
 )
 
 func TestMain(m *testing.M) {

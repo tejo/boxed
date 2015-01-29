@@ -6,7 +6,7 @@ import (
 	"log"
 
 	"github.com/boltdb/bolt"
-	"github.com/tejo/g-blog/dropbox"
+	"github.com/tejo/boxed/dropbox"
 )
 
 var DB *bolt.DB
