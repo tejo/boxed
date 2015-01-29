@@ -42,6 +42,10 @@ func Test_SaveUserData(t *testing.T) {
 	}
 	token := dropbox.AccessToken{Key: "a", Secret: "b"}
 	datastore.SaveUserData(info, token)
+
 	at, _ := datastore.LoadUserToken("foo@bar.it")
 	a.Equal(at, token)
+
+	userData, _ := datastore.LoadUserData("foo@bar.it")
+	a.Equal(userData, info)
 }

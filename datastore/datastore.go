@@ -57,3 +57,14 @@ func LoadUserToken(email string) (dropbox.AccessToken, error) {
 	})
 	return AccessToken, err
 }
+
+func LoadUserData(email string) (*dropbox.AccountInfo, error) {
+	var AccountInfo *dropbox.AccountInfo
+	err := DB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("UserData"))
+		info := b.Get([]byte(email))
+		json.Unmarshal(info, &AccountInfo)
+		return nil
+	})
+	return AccountInfo, err
+}
