@@ -14,12 +14,16 @@ import (
 var DB *bolt.DB
 
 type Article struct {
-	Key       string
+	ID        string
 	Content   string
 	Title     string `json:"title"`
 	CreatedAt string `json:"created-at"`
 	Permalink string `json:"permalink"`
 	dropbox.FileMetadata
+}
+
+func (a *Article) GenerateID(email string) {
+	a.ID = email + ":article:" + a.FileMetadata.Path
 }
 
 func Connect(dbname string) error {

@@ -57,6 +57,9 @@ func Test_ParseArticle(t *testing.T) {
 	a.Equal(article.Title, "this is my first article")
 	a.Equal(article.Permalink, "this-is-my-first-article")
 	a.Equal(article.CreatedAt, "2015-10-10")
+	a.Equal(article.FileMetadata, fakeFileMetaData())
+	article.GenerateID("foo@bar.it")
+	a.Equal(article.ID, "foo@bar.it:article:/foo.md")
 }
 
 func fakeFileMetaData() dropbox.FileMetadata {
