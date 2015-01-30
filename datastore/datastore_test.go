@@ -49,3 +49,32 @@ func Test_SaveUserData(t *testing.T) {
 	userData, _ := datastore.LoadUserData("foo@bar.it")
 	a.Equal(userData, info)
 }
+
+func Test_ParseArticle(t *testing.T) {
+	a := assert.New(t)
+	article := datastore.ParseEntry(fakeFileMetaData(), fakeFileContent())
+	a.Contains(article.Content, "my first article</h1>")
+	a.Equal(article.Title, "this is my first article")
+	a.Equal(article.Permalink, "this-is-my-first-article")
+	a.Equal(article.CreatedAt, "2015-10-10")
+}
+
+func fakeFileMetaData() dropbox.FileMetadata {
+	return dropbox.FileMetadata{
+		Path:  "/foo.md",
+		IsDir: false,
+	}
+}
+
+func fakeFileContent() []byte {
+	b := `
+<!--{
+		"created-at": "2015-10-10",
+		"permalink": "this-is-my-first-article",
+		"title": "this is my first article"
+}-->
+
+# my first article
+	`
+	return []byte(b)
+}

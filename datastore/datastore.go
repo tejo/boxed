@@ -1,15 +1,26 @@
 package datastore
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"log"
 
 	"github.com/boltdb/bolt"
+	"github.com/shurcooL/go/github_flavored_markdown"
 	"github.com/tejo/boxed/dropbox"
 )
 
 var DB *bolt.DB
+
+type Article struct {
+	Key       string
+	Content   string
+	Title     string `json:"title"`
+	CreatedAt string `json:"created-at"`
+	Permalink string `json:"permalink"`
+	dropbox.FileMetadata
+}
 
 func Connect(dbname string) error {
 	var err error
@@ -67,4 +78,24 @@ func LoadUserData(email string) (*dropbox.AccountInfo, error) {
 		return nil
 	})
 	return AccountInfo, err
+}
+
+func ParseEntry(e dropbox.FileMetadata, c []byte) *Article {
+	article := extractEntryData(c)
+	article.Content = string(github_flavored_markdown.Markdown(c))
+	article.FileMetadata = e
+	return article
+}
+
+func extractEntryData(c []byte) *Article {
+	var article Article
+	start := bytes.Index(c, []byte("<!--"))
+	end := bytes.Index(c, []byte("-->"))
+	if start > -1 && end > -1 {
+		err := json.Unmarshal(c[(start+4):end], &article)
+		if err != nil {
+			fmt.Println("error:", err)
+		}
+	}
+	return &article
 }
