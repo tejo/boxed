@@ -21,11 +21,17 @@ type Article struct {
 	CreatedAt string `json:"created-at"`
 	TimeStamp string `json:"timestamp"`
 	Permalink string `json:"permalink"`
+	Slug      string `json:"slug"`
 	dropbox.FileMetadata
 }
 
 func (a *Article) GenerateID(email string) {
 	a.ID = email + ":article:" + a.FileMetadata.Path
+	a.generateSlug()
+}
+
+func (a *Article) generateSlug() {
+	a.Slug = "/" + a.CreatedAt + "/" + a.Permalink
 }
 
 func (a *Article) ParseTimeStamp() {

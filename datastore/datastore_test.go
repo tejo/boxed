@@ -63,6 +63,14 @@ func Test_ParseArticle(t *testing.T) {
 	a.Equal(article.TimeStamp, "1444435200")
 }
 
+func Test_generateSlug(t *testing.T) {
+	a := assert.New(t)
+	article := datastore.ParseEntry(fakeFileMetaData(), fakeFileContent())
+	article.GenerateID("foo@bar.it")
+	a.Equal(article.Slug, "/2015-10-10/this-is-my-first-article")
+}
+
+// email:slug:2015/13/14/ciao-come-va = key email:artilce:/todo.md title
 func fakeFileMetaData() dropbox.FileMetadata {
 	return dropbox.FileMetadata{
 		Path:  "/foo.md",
