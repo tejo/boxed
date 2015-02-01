@@ -34,6 +34,30 @@ func (a *Article) generateSlug() {
 	a.Slug = "/" + a.CreatedAt + "/" + a.Permalink
 }
 
+func (a *Article) Save() error {
+	var err error
+	err = DB.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("UserArticles"))
+		article, err := json.Marshal(a)
+		err = b.Put([]byte(a.ID), []byte(article))
+		fmt.Printf("err = %+v\n", err)
+		return err
+	})
+	return err
+}
+
+func LoadArticle(ID string) (Article, error) {
+	var article Article
+	err := DB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("UserArticles"))
+		a := b.Get([]byte(ID))
+		fmt.Printf("a = %+v\n", string(a))
+		json.Unmarshal(a, &article)
+		return nil
+	})
+	return article, err
+}
+
 func (a *Article) ParseTimeStamp() {
 	test, err := time.Parse("2006-02-01", a.CreatedAt)
 	if err == nil {

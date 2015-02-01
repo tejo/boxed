@@ -63,6 +63,20 @@ func Test_ParseArticle(t *testing.T) {
 	a.Equal(article.TimeStamp, "1444435200")
 }
 
+func Test_SaveArticle(t *testing.T) {
+	a := assert.New(t)
+	func() { //I am a horrible peson
+		article := datastore.ParseEntry(fakeFileMetaData(), fakeFileContent())
+		article.GenerateID("foo@bar.it")
+		article.Save()
+	}()
+	article, _ := datastore.LoadArticle("foo@bar.it:article:/foo.md")
+	a.Equal(article.Title, "this is my first article")
+	a.Equal(article.Permalink, "this-is-my-first-article")
+	a.Equal(article.CreatedAt, "2015-10-10")
+	a.Equal(article.FileMetadata, fakeFileMetaData())
+}
+
 func Test_generateSlug(t *testing.T) {
 	a := assert.New(t)
 	article := datastore.ParseEntry(fakeFileMetaData(), fakeFileContent())

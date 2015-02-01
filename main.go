@@ -1,14 +1,19 @@
 package main
 
 import (
+	"bytes"
 	"encoding/gob"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
 
+	"github.com/boltdb/bolt"
 	"github.com/gorilla/sessions"
 	"github.com/julienschmidt/httprouter"
+	"github.com/markbates/going/wait"
 	"github.com/tejo/boxed/datastore"
 	"github.com/tejo/boxed/dropbox"
 )
@@ -18,53 +23,37 @@ func main() {
 	defer datastore.Close()
 
 	router := httprouter.New()
-	// router.GET("/", Index)
+	router.GET("/", Index)
 	router.GET("/login", Login)
 	router.GET("/account", Account)
-	// router.GET("/r", Refresh)
+	router.GET("/r", Refresh)
 	router.GET("/oauth/callback", Callback)
 	// router.GET("/a/:year/:month/day/:slug", ArticleHandler)
 
 	log.Fatal(http.ListenAndServe(config.Port, router))
 }
 
-type Article struct {
-	Key     string
-	Content string
-	dropbox.FileMetadata
+func Refresh(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	at, err := datastore.LoadUserToken(config.DefaultUserEmail)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	dbc := dropbox.NewClient(at, config.AppToken)
+	meta, _ := dbc.GetMetadata("/published", true)
+	wait.Wait(len(meta.Contents), func(index int) {
+		entry := meta.Contents[index]
+		if entry.IsDir {
+			return
+		}
+		file, _ := dbc.GetFile(entry.Path)
+		content, _ := ioutil.ReadAll(file)
+		article := datastore.ParseEntry(entry, content)
+		article.GenerateID(config.DefaultUserEmail)
+		article.Save()
+		fmt.Printf("article = %+v\n", article)
+	})
 }
-
-// func Refresh(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-// 	var at dropbox.AccessToken
-// 	db.View(func(tx *bolt.Tx) error {
-// 		b := tx.Bucket([]byte("UserData"))
-// 		token := b.Get([]byte(defaultUserEmail + ":token"))
-// 		json.Unmarshal(token, &at)
-// 		fmt.Printf("The answer is: %s\n", at)
-// 		return nil
-// 	})
-// 	meta, _ := dbClient(at).GetMetadata("/published", true)
-// 	fmt.Printf("meta.Contents = %+v\n", meta.Contents)
-// 	wait.Wait(len(meta.Contents), func(index int) {
-// 		entry := meta.Contents[index]
-// 		if entry.IsDir {
-// 			return
-// 		}
-// 		file, _ := dbClient(at).GetFile(entry.Path)
-// 		content, _ := ioutil.ReadAll(file)
-// 		article := &Article{
-// 			Key:          defaultUserEmail + ":article:" + entry.Path,
-// 			Content:      string(github_flavored_markdown.Markdown(content)),
-// 			FileMetadata: entry,
-// 		}
-// 		db.Update(func(tx *bolt.Tx) error {
-// 			b := tx.Bucket([]byte("UserArticles"))
-// 			a, err := json.Marshal(article)
-// 			err = b.Put([]byte(article.Key), []byte(a))
-// 			return err
-// 		})
-// 	})
-// }
 
 func Login(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	withSession(w, r, func(session *sessions.Session) {
@@ -113,20 +102,20 @@ func Callback(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 // 	})
 // }
 
-// func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-// 	db.View(func(tx *bolt.Tx) error {
-// 		c := tx.Bucket([]byte("UserArticles")).Cursor()
+func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	datastore.DB.View(func(tx *bolt.Tx) error {
+		c := tx.Bucket([]byte("UserArticles")).Cursor()
 
-// 		prefix := []byte(defaultUserEmail + ":article:")
-// 		for k, v := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, v = c.Next() {
-// 			var a Article
-// 			json.Unmarshal(v, &a)
-// 			fmt.Fprint(w, a.Path)
-// 		}
+		prefix := []byte(config.DefaultUserEmail + ":article:")
+		for k, v := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, v = c.Next() {
+			var a datastore.Article
+			json.Unmarshal(v, &a)
+			fmt.Fprint(w, a)
+		}
 
-// 		return nil
-// 	})
-// }
+		return nil
+	})
+}
 
 func Account(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	withSession(w, r, func(session *sessions.Session) {
