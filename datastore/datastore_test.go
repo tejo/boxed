@@ -60,6 +60,7 @@ func Test_ParseArticle(t *testing.T) {
 	a.Equal(article.FileMetadata, fakeFileMetaData())
 	article.GenerateID("foo@bar.it")
 	a.Equal(article.ID, "foo@bar.it:article:/foo.md")
+	a.Equal(article.TimeStamp, "1444435200")
 }
 
 func fakeFileMetaData() dropbox.FileMetadata {

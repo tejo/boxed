@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/boltdb/bolt"
 	"github.com/shurcooL/go/github_flavored_markdown"
@@ -18,12 +19,22 @@ type Article struct {
 	Content   string
 	Title     string `json:"title"`
 	CreatedAt string `json:"created-at"`
+	TimeStamp string `json:"timestamp"`
 	Permalink string `json:"permalink"`
 	dropbox.FileMetadata
 }
 
 func (a *Article) GenerateID(email string) {
 	a.ID = email + ":article:" + a.FileMetadata.Path
+}
+
+func (a *Article) ParseTimeStamp() {
+	test, err := time.Parse("2006-02-01", a.CreatedAt)
+	if err == nil {
+		a.TimeStamp = fmt.Sprintf("%d", test.Unix())
+	} else {
+		a.TimeStamp = "0000000000"
+	}
 }
 
 func Connect(dbname string) error {
@@ -88,6 +99,7 @@ func ParseEntry(e dropbox.FileMetadata, c []byte) *Article {
 	article := extractEntryData(c)
 	article.Content = string(github_flavored_markdown.Markdown(c))
 	article.FileMetadata = e
+	article.ParseTimeStamp()
 	return article
 }
 
