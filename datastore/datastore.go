@@ -63,6 +63,7 @@ func (a *Article) ParseTimeStamp() {
 	if err == nil {
 		a.TimeStamp = fmt.Sprintf("%d", test.Unix())
 	} else {
+		log.Printf("time parse error = %+v\n", err)
 		a.TimeStamp = "0000000000"
 	}
 }
