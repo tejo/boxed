@@ -40,7 +40,6 @@ func (a *Article) Save() error {
 		b := tx.Bucket([]byte("UserArticles"))
 		article, err := json.Marshal(a)
 		err = b.Put([]byte(a.ID), []byte(article))
-		fmt.Printf("err = %+v\n", err)
 		return err
 	})
 	return err
@@ -63,7 +62,7 @@ func (a *Article) ParseTimeStamp() {
 	if err == nil {
 		a.TimeStamp = fmt.Sprintf("%d", test.Unix())
 	} else {
-		log.Printf("time parse error = %+v\n", err)
+		log.Printf("%s for post %s\n", err, a.Path)
 		a.TimeStamp = "0000000000"
 	}
 }
@@ -112,6 +111,9 @@ func LoadUserToken(email string) (dropbox.AccessToken, error) {
 		json.Unmarshal(token, &AccessToken)
 		return nil
 	})
+	if err != nil {
+		log.Panic(err)
+	}
 	return AccessToken, err
 }
 

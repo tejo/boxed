@@ -22,19 +22,20 @@ func main() {
 	datastore.Connect("blog.db")
 	defer datastore.Close()
 
+	handleCommands()
+
 	router := httprouter.New()
 	router.GET("/", Index)
 	router.GET("/login", Login)
 	router.GET("/account", Account)
-	router.GET("/r", Refresh)
 	router.GET("/oauth/callback", Callback)
 	// router.GET("/a/:year/:month/day/:slug", ArticleHandler)
 
 	log.Fatal(http.ListenAndServe(config.Port, router))
 }
 
-func Refresh(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	at, err := datastore.LoadUserToken(config.DefaultUserEmail)
+func refreshPosts(email string) {
+	at, err := datastore.LoadUserToken(email)
 	if err != nil {
 		log.Fatal(err)
 		return
@@ -49,9 +50,9 @@ func Refresh(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		file, _ := dbc.GetFile(entry.Path)
 		content, _ := ioutil.ReadAll(file)
 		article := datastore.ParseEntry(entry, content)
-		article.GenerateID(config.DefaultUserEmail)
+		article.GenerateID(email)
 		article.Save()
-		fmt.Printf("article = %+v\n", article)
+		log.Printf("processed post:  %s\n", article.Path)
 	})
 }
 
