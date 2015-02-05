@@ -34,7 +34,7 @@ func main() {
 	log.Fatal(http.ListenAndServe(config.Port, router))
 }
 
-func refreshPosts(email string) {
+func refreshArticles(email string) {
 	at, err := datastore.LoadUserToken(email)
 	if err != nil {
 		log.Fatal(err)
@@ -52,7 +52,7 @@ func refreshPosts(email string) {
 		article := datastore.ParseEntry(entry, content)
 		article.GenerateID(email)
 		article.Save()
-		log.Printf("processed post:  %s\n", article.Path)
+		log.Printf("processed article:  %s\n", article.Path)
 	})
 }
 
