@@ -59,8 +59,21 @@ func Test_ParseArticle(t *testing.T) {
 	a.Equal(article.CreatedAt, "2015-10-10")
 	a.Equal(article.FileMetadata, fakeFileMetaData())
 	article.GenerateID("foo@bar.it")
-	a.Equal(article.ID, "foo@bar.it:article:/foo.md")
+	a.Equal(article.ID, "foo@bar.it:article:/published/this_is_my-first article.md")
 	a.Equal(article.TimeStamp, "1444435200")
+}
+
+func Test_ParseArticle_WithNoMetadata(t *testing.T) {
+	a := assert.New(t)
+	article := datastore.ParseEntry(fakeFileMetaData(), fakeFileContentWithNoMetadata())
+	a.Contains(article.Content, "my first article</h1>")
+	a.Equal(article.Title, "this is my first article")
+	a.Equal(article.Permalink, "this-is-my-first-article")
+	a.Equal(article.CreatedAt, "2011-07-19")
+	a.Equal(article.FileMetadata, fakeFileMetaData())
+	article.GenerateID("foo@bar.it")
+	a.Equal(article.ID, "foo@bar.it:article:/published/this_is_my-first article.md")
+	a.Equal(article.TimeStamp, "1311033600")
 }
 
 func Test_SaveArticle(t *testing.T) {
@@ -70,7 +83,7 @@ func Test_SaveArticle(t *testing.T) {
 		article.GenerateID("foo@bar.it")
 		article.Save()
 	}()
-	article, _ := datastore.LoadArticle("foo@bar.it:article:/foo.md")
+	article, _ := datastore.LoadArticle("foo@bar.it:article:/published/this_is_my-first article.md")
 	a.Equal(article.Title, "this is my first article")
 	a.Equal(article.Permalink, "this-is-my-first-article")
 	a.Equal(article.CreatedAt, "2015-10-10")
@@ -84,11 +97,11 @@ func Test_generateSlug(t *testing.T) {
 	a.Equal(article.Slug, "/2015-10-10/this-is-my-first-article")
 }
 
-// email:slug:2015/13/14/ciao-come-va = key email:artilce:/todo.md title
 func fakeFileMetaData() dropbox.FileMetadata {
 	return dropbox.FileMetadata{
-		Path:  "/foo.md",
-		IsDir: false,
+		Path:     "/published/this_is_my-first article.md",
+		IsDir:    false,
+		Modified: "Tue, 19 Jul 2011 21:55:38 +0000",
 	}
 }
 
@@ -99,6 +112,14 @@ func fakeFileContent() []byte {
 		"permalink": "this-is-my-first-article",
 		"title": "this is my first article"
 }-->
+
+# my first article
+	`
+	return []byte(b)
+}
+
+func fakeFileContentWithNoMetadata() []byte {
+	b := `
 
 # my first article
 	`
