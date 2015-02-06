@@ -1,0 +1,72 @@
+{
+	"ImportPath": "github.com/tejo/boxed",
+	"GoVersion": "go1.4",
+	"Deps": [
+		{
+			"ImportPath": "github.com/boltdb/bolt",
+			"Comment": "v1.0-28-gb8dbe11",
+			"Rev": "b8dbe1101d74c30e817227a99716591e3e6e6bc4"
+		},
+		{
+			"ImportPath": "github.com/gorilla/context",
+			"Rev": "215affda49addc4c8ef7e2534915df2c8c35c6cd"
+		},
+		{
+			"ImportPath": "github.com/gorilla/securecookie",
+			"Rev": "1b0c7f6e9ab3d7f500fd7d50c7ad835ff428139b"
+		},
+		{
+			"ImportPath": "github.com/gorilla/sessions",
+			"Rev": "aa5e036e6c44aec69a32eb41097001978b29ad31"
+		},
+		{
+			"ImportPath": "github.com/julienschmidt/httprouter",
+			"Rev": "b55664b9e92004aebb7f19a19a9d06271f3a41fc"
+		},
+		{
+			"ImportPath": "github.com/markbates/going/wait",
+			"Rev": "73ddc4ece0565efaebf73505f4df9e871bbe49fc"
+		},
+		{
+			"ImportPath": "github.com/microcosm-cc/bluemonday",
+			"Rev": "fcd0f5074e55df204568c7419509fb59ddcad228"
+		},
+		{
+			"ImportPath": "github.com/russross/blackfriday",
+			"Comment": "v1.2-36-g7001890",
+			"Rev": "7001890e79eb6a002a5c8acfea9746508eb17829"
+		},
+		{
+			"ImportPath": "github.com/sergi/go-diff/diffmatchpatch",
+			"Rev": "97b2266dfe4bd4ea1b81a463322f04f8b724801e"
+		},
+		{
+			"ImportPath": "github.com/shurcooL/go/github_flavored_markdown",
+			"Rev": "b40bdba54a160588cb577a79b7893a8d8fb65c25"
+		},
+		{
+			"ImportPath": "github.com/shurcooL/go/highlight_go",
+			"Rev": "b40bdba54a160588cb577a79b7893a8d8fb65c25"
+		},
+		{
+			"ImportPath": "github.com/shurcooL/go/u/u7",
+			"Rev": "b40bdba54a160588cb577a79b7893a8d8fb65c25"
+		},
+		{
+			"ImportPath": "github.com/shurcooL/sanitized_anchor_name",
+			"Rev": "9a8b7d4e8f347bfa230879db9d7d4e4d9e19f962"
+		},
+		{
+			"ImportPath": "github.com/sourcegraph/annotate",
+			"Rev": "35fbe2df7c605a08bcd5d1cb66e7b794a247decd"
+		},
+		{
+			"ImportPath": "github.com/sourcegraph/syntaxhighlight",
+			"Rev": "1230936ecfad4640d05b4ef50798dcc7ffef4e40"
+		},
+		{
+			"ImportPath": "golang.org/x/net/html",
+			"Rev": "8b2d0ae1f4c3b83c10ff17e89a89ff04cc0903c3"
+		}
+	]
+}
