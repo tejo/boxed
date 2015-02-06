@@ -59,7 +59,7 @@ func Test_ParseArticle(t *testing.T) {
 	a.Equal(article.CreatedAt, "2015-10-10")
 	a.Equal(article.FileMetadata, fakeFileMetaData())
 	article.GenerateID("foo@bar.it")
-	a.Equal(article.ID, "foo@bar.it:article:/published/this_is_my-first article.md")
+	a.Equal(article.ID, "foo@bar.it:article:/2015-10-10/this-is-my-first-article")
 	a.Equal(article.TimeStamp, "1444435200")
 }
 
@@ -72,7 +72,7 @@ func Test_ParseArticle_WithNoMetadata(t *testing.T) {
 	a.Equal(article.CreatedAt, "2011-07-19")
 	a.Equal(article.FileMetadata, fakeFileMetaData())
 	article.GenerateID("foo@bar.it")
-	a.Equal(article.ID, "foo@bar.it:article:/published/this_is_my-first article.md")
+	a.Equal(article.ID, "foo@bar.it:article:/2011-07-19/this-is-my-first-article")
 	a.Equal(article.TimeStamp, "1311033600")
 }
 
@@ -83,7 +83,7 @@ func Test_SaveArticle(t *testing.T) {
 		article.GenerateID("foo@bar.it")
 		article.Save()
 	}()
-	article, _ := datastore.LoadArticle("foo@bar.it:article:/published/this_is_my-first article.md")
+	article, _ := datastore.LoadArticle("foo@bar.it:article:/2015-10-10/this-is-my-first-article")
 	a.Equal(article.Title, "this is my first article")
 	a.Equal(article.Permalink, "this-is-my-first-article")
 	a.Equal(article.CreatedAt, "2015-10-10")

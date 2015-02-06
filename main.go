@@ -52,7 +52,7 @@ func refreshArticles(email string) {
 		article := datastore.ParseEntry(entry, content)
 		article.GenerateID(email)
 		article.Save()
-		log.Printf("processed article:  %s\n", article.Path)
+		log.Printf("processed article:  %s\n", article.ID)
 	})
 }
 

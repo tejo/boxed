@@ -27,8 +27,8 @@ type Article struct {
 }
 
 func (a *Article) GenerateID(email string) {
-	a.ID = email + ":article:" + a.FileMetadata.Path
 	a.generateSlug()
+	a.ID = email + ":article:" + a.Slug
 }
 
 func (a *Article) generateSlug() {
