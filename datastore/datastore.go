@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"sort"
 	"strings"
 	"time"
 
@@ -157,6 +158,37 @@ func ParseEntry(e dropbox.FileMetadata, c []byte) *Article {
 	article.sanitizeArticleMetadata()
 	article.ParseTimeStamp()
 	return article
+}
+
+// load user article keys, sorted by created at
+func LoadArticleKeys(email string) []string {
+	keys, sortedKeys := []string{}, []string{}
+	DB.View(func(tx *bolt.Tx) error {
+		c := tx.Bucket([]byte("UserArticles")).Cursor()
+		prefix := []byte(email + ":article:")
+		for k, _ := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, _ = c.Next() {
+			keys = append(keys, string(k))
+		}
+		return nil
+	})
+
+	sort.Strings(keys)
+
+	for i := len(keys) - 1; i >= 0; i-- {
+		sortedKeys = append(sortedKeys, keys[i])
+	}
+	return sortedKeys
+}
+
+func DeleteArtilcles(email string) {
+	DB.Update(func(tx *bolt.Tx) error {
+		c := tx.Bucket([]byte("UserArticles")).Cursor()
+		prefix := []byte(email + ":article:")
+		for k, _ := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, _ = c.Next() {
+			c.Delete()
+		}
+		return nil
+	})
 }
 
 func extractEntryData(c []byte) *Article {

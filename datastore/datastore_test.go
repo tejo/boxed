@@ -1,6 +1,7 @@
 package datastore_test
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -27,7 +28,7 @@ func Test_CreateDefaultBuckets(t *testing.T) {
 	datastore.DB.Update(func(tx *bolt.Tx) error {
 		_, err := tx.CreateBucket([]byte("UserData"))
 		a.NotEqual(err, nil)
-		_, err = tx.CreateBucket([]byte("UserData"))
+		_, err = tx.CreateBucket([]byte("UserArticles"))
 		a.NotEqual(err, nil)
 		return nil
 	})
@@ -78,7 +79,7 @@ func Test_ParseArticle_WithNoMetadata(t *testing.T) {
 
 func Test_SaveArticle(t *testing.T) {
 	a := assert.New(t)
-	func() { //I am a horrible peson
+	func() { //I am a horrible person
 		article := datastore.ParseEntry(fakeFileMetaData(), fakeFileContent())
 		article.GenerateID("foo@bar.it")
 		article.Save()
@@ -95,6 +96,40 @@ func Test_generateSlug(t *testing.T) {
 	article := datastore.ParseEntry(fakeFileMetaData(), fakeFileContent())
 	article.GenerateID("foo@bar.it")
 	a.Equal(article.Slug, "/2015-10-10/this-is-my-first-article")
+}
+
+func Test_LoadArticle(t *testing.T)   {}
+func Test_DeleteArticle(t *testing.T) {}
+
+func Test_DeleteArticles(t *testing.T) {
+	a := assert.New(t)
+	article := datastore.ParseEntry(fakeFileMetaData(), fakeFileContentWithNoMetadata())
+	article.GenerateID("foo@bar.it")
+	article.Save()
+	datastore.DeleteArtilcles("foo@bar.it")
+	a.Equal(len(datastore.LoadArticleKeys("foo@bar.it")), 0)
+}
+
+func Test_LoadArticleKeys(t *testing.T) {
+	a := assert.New(t)
+
+	datastore.DeleteArtilcles("foo@bar.it")
+
+	article := datastore.ParseEntry(fakeFileMetaData(), fakeFileContentWithNoMetadata())
+	article.Permalink = "a1"
+	article.CreatedAt = "2014-12-01"
+	article.GenerateID("foo@bar.it")
+	article.Save()
+	anotherArticle := datastore.ParseEntry(fakeFileMetaData(), fakeFileContentWithNoMetadata())
+	anotherArticle.Permalink = "a2"
+	anotherArticle.CreatedAt = "2014-12-02"
+	anotherArticle.GenerateID("foo@bar.it")
+	anotherArticle.Save()
+
+	keys := datastore.LoadArticleKeys("foo@bar.it")
+
+	a.Contains(keys[0], "a2")
+	fmt.Printf("keys = %+v\n", keys)
 }
 
 func fakeFileMetaData() dropbox.FileMetadata {
