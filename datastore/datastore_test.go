@@ -76,7 +76,7 @@ func Test_ParseArticle_WithNoMetadata(t *testing.T) {
 	a.Equal(article.TimeStamp, "1311033600")
 }
 
-func Test_SaveArticle(t *testing.T) {
+func Test_Article_Save(t *testing.T) {
 	a := assert.New(t)
 	func() { //I am a horrible person
 		article := datastore.ParseEntry(fakeFileMetaData(), fakeFileContent())
@@ -90,6 +90,20 @@ func Test_SaveArticle(t *testing.T) {
 	a.Equal(article.FileMetadata, fakeFileMetaData())
 }
 
+func Test_Article_Delete(t *testing.T) {
+	a := assert.New(t)
+	article := datastore.ParseEntry(fakeFileMetaData(), fakeFileContent())
+	article.GenerateID("foo@bar.it")
+	article.Save()
+
+	article.Delete()
+
+	_, err := datastore.LoadArticle(article.ID)
+	a.NotEqual(err, nil)
+}
+
+func Test_DeleteArticle(t *testing.T) {}
+
 func Test_generateSlug(t *testing.T) {
 	a := assert.New(t)
 	article := datastore.ParseEntry(fakeFileMetaData(), fakeFileContent())
@@ -97,16 +111,20 @@ func Test_generateSlug(t *testing.T) {
 	a.Equal(article.Slug, "/2015-10-10/this-is-my-first-article")
 }
 
-// func Test_LoadArticle(t *testing.T) {
-// 	a := assert.New(t)
-// 	func() {
-// 		article := datastore.ParseEntry(fakeFileMetaData(), fakeFileContent())
-// 		article.GenerateID("foo@bar.it")
-// 		article.Save()
-// 	}()
+func Test_LoadArticle(t *testing.T) {
+	a := assert.New(t)
+	article := datastore.ParseEntry(fakeFileMetaData(), fakeFileContent())
+	article.GenerateID("foo@bar.it")
+	article.Save()
 
-// }
-func Test_DeleteArticle(t *testing.T) {}
+	//load article by ID (key)
+	loadedArticle, _ := datastore.LoadArticle(article.ID)
+	a.Equal(article, loadedArticle)
+
+	//test article not found
+	_, err := datastore.LoadArticle("foo")
+	a.NotEqual(err, nil)
+}
 
 func Test_DeleteArticles(t *testing.T) {
 	a := assert.New(t)

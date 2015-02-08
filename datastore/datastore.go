@@ -3,6 +3,7 @@ package datastore
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"sort"
@@ -47,6 +48,16 @@ func (a *Article) Save() error {
 	return err
 }
 
+func (a *Article) Delete() error {
+	var err error
+	err = DB.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("UserArticles"))
+		b.Delete([]byte(a.ID))
+		return err
+	})
+	return err
+}
+
 func (a *Article) sanitizeArticleMetadata() {
 	if a.Permalink == "" {
 		a.Permalink = a.Path
@@ -77,17 +88,6 @@ func (a *Article) ParseTimeStamp() {
 		return
 	}
 	a.TimeStamp = fmt.Sprintf("%d", t.Unix())
-}
-
-func LoadArticle(ID string) (Article, error) {
-	var article Article
-	err := DB.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("UserArticles"))
-		a := b.Get([]byte(ID))
-		json.Unmarshal(a, &article)
-		return nil
-	})
-	return article, err
 }
 
 func Connect(dbname string) error {
@@ -178,6 +178,20 @@ func LoadArticleIDs(email string) []string {
 		sortedIDs = append(sortedIDs, ids[i])
 	}
 	return sortedIDs
+}
+
+func LoadArticle(ID string) (*Article, error) {
+	var a Article
+	DB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("UserArticles"))
+		v := b.Get([]byte(ID))
+		json.Unmarshal(v, &a)
+		return nil
+	})
+	if a.ID == "" {
+		return &a, errors.New("article not found")
+	}
+	return &a, nil
 }
 
 func DeleteArtilcles(email string) {
