@@ -27,6 +27,7 @@ func main() {
 	router := httprouter.New()
 	router.GET("/", Index)
 	router.GET("/login", Login)
+	router.GET("/webhook", WebHook)
 	router.GET("/account", Account)
 	router.GET("/oauth/callback", Callback)
 	// router.GET("/a/:year/:month/day/:slug", ArticleHandler)
@@ -65,6 +66,10 @@ func Login(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		session.Save(r, w)
 		http.Redirect(w, r, authUrl.String(), 302)
 	})
+}
+
+func WebHook(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	fmt.Fprintf(w, "%s", r.URL.Query().Get("challenge"))
 }
 
 // saves the user id in session, save used data and access token in

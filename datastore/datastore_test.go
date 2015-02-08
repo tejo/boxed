@@ -46,6 +46,9 @@ func Test_SaveUserData(t *testing.T) {
 	at, _ := datastore.LoadUserToken("foo@bar.it")
 	a.Equal(at, token)
 
+	at, _ = datastore.LoadUserTokenByUID(1234)
+	a.Equal(at, token)
+
 	userData, _ := datastore.LoadUserData("foo@bar.it")
 	a.Equal(userData, info)
 }

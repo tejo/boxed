@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -117,10 +118,17 @@ func SaveUserData(info *dropbox.AccountInfo, token dropbox.AccessToken) error {
 	var err error
 	err = DB.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("UserData"))
+
+		// saves user token
 		t, _ := json.Marshal(token)
 		err = b.Put([]byte(info.Email+":token"), []byte(t))
+
+		// saves user data, use email as key
 		i, _ := json.Marshal(info)
 		err = b.Put([]byte(info.Email), []byte(i))
+
+		// saves mapping for uid : email
+		err = b.Put([]byte(strconv.Itoa(int(info.Uid))), []byte(info.Email))
 		return err
 	})
 	return err
@@ -138,6 +146,17 @@ func LoadUserToken(email string) (dropbox.AccessToken, error) {
 		log.Panic(err)
 	}
 	return AccessToken, err
+}
+
+func LoadUserTokenByUID(uid int) (dropbox.AccessToken, error) {
+	var email string
+	DB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("UserData"))
+		email = string(b.Get([]byte(strconv.Itoa(uid))))
+		return nil
+	})
+
+	return LoadUserToken(email)
 }
 
 func LoadUserData(email string) (*dropbox.AccountInfo, error) {
