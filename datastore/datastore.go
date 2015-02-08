@@ -160,24 +160,24 @@ func ParseEntry(e dropbox.FileMetadata, c []byte) *Article {
 	return article
 }
 
-// load user article keys, sorted by created at
-func LoadArticleKeys(email string) []string {
-	keys, sortedKeys := []string{}, []string{}
+// load user article ids, sorted by created at
+func LoadArticleIDs(email string) []string {
+	ids, sortedIDs := []string{}, []string{}
 	DB.View(func(tx *bolt.Tx) error {
 		c := tx.Bucket([]byte("UserArticles")).Cursor()
 		prefix := []byte(email + ":article:")
 		for k, _ := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, _ = c.Next() {
-			keys = append(keys, string(k))
+			ids = append(ids, string(k))
 		}
 		return nil
 	})
 
-	sort.Strings(keys)
+	sort.Strings(ids)
 
-	for i := len(keys) - 1; i >= 0; i-- {
-		sortedKeys = append(sortedKeys, keys[i])
+	for i := len(ids) - 1; i >= 0; i-- {
+		sortedIDs = append(sortedIDs, ids[i])
 	}
-	return sortedKeys
+	return sortedIDs
 }
 
 func DeleteArtilcles(email string) {

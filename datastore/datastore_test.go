@@ -1,7 +1,6 @@
 package datastore_test
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -98,7 +97,15 @@ func Test_generateSlug(t *testing.T) {
 	a.Equal(article.Slug, "/2015-10-10/this-is-my-first-article")
 }
 
-func Test_LoadArticle(t *testing.T)   {}
+// func Test_LoadArticle(t *testing.T) {
+// 	a := assert.New(t)
+// 	func() {
+// 		article := datastore.ParseEntry(fakeFileMetaData(), fakeFileContent())
+// 		article.GenerateID("foo@bar.it")
+// 		article.Save()
+// 	}()
+
+// }
 func Test_DeleteArticle(t *testing.T) {}
 
 func Test_DeleteArticles(t *testing.T) {
@@ -107,10 +114,10 @@ func Test_DeleteArticles(t *testing.T) {
 	article.GenerateID("foo@bar.it")
 	article.Save()
 	datastore.DeleteArtilcles("foo@bar.it")
-	a.Equal(len(datastore.LoadArticleKeys("foo@bar.it")), 0)
+	a.Equal(len(datastore.LoadArticleIDs("foo@bar.it")), 0)
 }
 
-func Test_LoadArticleKeys(t *testing.T) {
+func Test_LoadArticleIDs(t *testing.T) {
 	a := assert.New(t)
 
 	datastore.DeleteArtilcles("foo@bar.it")
@@ -126,10 +133,9 @@ func Test_LoadArticleKeys(t *testing.T) {
 	anotherArticle.GenerateID("foo@bar.it")
 	anotherArticle.Save()
 
-	keys := datastore.LoadArticleKeys("foo@bar.it")
+	ids := datastore.LoadArticleIDs("foo@bar.it")
 
-	a.Contains(keys[0], "a2")
-	fmt.Printf("keys = %+v\n", keys)
+	a.Contains(ids[0], "a2")
 }
 
 func fakeFileMetaData() dropbox.FileMetadata {
