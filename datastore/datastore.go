@@ -205,6 +205,16 @@ func DeleteArtilcles(email string) {
 	})
 }
 
+func Delete(bucket []byte, key string) error {
+	var err error
+	err = DB.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket(bucket)
+		b.Delete([]byte(key))
+		return err
+	})
+	return err
+}
+
 func extractEntryData(c []byte) *Article {
 	var article Article
 	start := bytes.Index(c, []byte("<!--"))

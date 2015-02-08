@@ -102,7 +102,17 @@ func Test_Article_Delete(t *testing.T) {
 	a.NotEqual(err, nil)
 }
 
-func Test_DeleteArticle(t *testing.T) {}
+func Test_Delete(t *testing.T) {
+	a := assert.New(t)
+	article := datastore.ParseEntry(fakeFileMetaData(), fakeFileContent())
+	article.GenerateID("foo@bar.it")
+	article.Save()
+
+	datastore.Delete([]byte("UserArticles"), article.ID)
+
+	_, err := datastore.LoadArticle(article.ID)
+	a.NotEqual(err, nil)
+}
 
 func Test_generateSlug(t *testing.T) {
 	a := assert.New(t)
