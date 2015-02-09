@@ -28,6 +28,7 @@ func main() {
 	router.GET("/", Index)
 	router.GET("/login", Login)
 	router.GET("/webhook", WebHook)
+	router.POST("/webhook", WebHook)
 	router.GET("/account", Account)
 	router.GET("/oauth/callback", Callback)
 
@@ -62,14 +63,28 @@ func Login(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		RequestToken, _ := dropbox.StartAuth(config.AppToken)
 		session.Values["RequestToken"] = RequestToken
 		url, _ := url.Parse(config.CallbackUrl)
-		authUrl := dropbox.GetAuthorizeURL(RequestToken, url)
+		authURL := dropbox.GetAuthorizeURL(RequestToken, url)
 		session.Save(r, w)
-		http.Redirect(w, r, authUrl.String(), 302)
+		http.Redirect(w, r, authURL.String(), 302)
 	})
 }
 
 func WebHook(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Fprintf(w, "%s", r.URL.Query().Get("challenge"))
+	if r.Method == "GET" {
+		fmt.Fprintf(w, "%s", r.URL.Query().Get("challenge"))
+		return
+	}
+
+	if r.Method == "POST" {
+		decoder := json.NewDecoder(r.Body)
+		var d dropbox.DeltaPayLoad
+		err := decoder.Decode(&d)
+		if err != nil {
+			log.Println(err)
+			return
+		}
+		log.Printf("d = %+v\n", d)
+	}
 }
 
 // saves the user id in session, save used data and access token in
@@ -130,10 +145,10 @@ func Account(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		if email := session.Values["email"]; email == nil {
 			fmt.Fprint(w, "no email found")
 			return
-		} else {
-			email := session.Values["email"].(string)
-			AccessToken, _ = datastore.LoadUserToken(email)
 		}
+		email := session.Values["email"].(string)
+		AccessToken, _ = datastore.LoadUserToken(email)
+
 		dbc := dropbox.NewClient(AccessToken, config.AppToken)
 		info, err := dbc.GetAccountInfo()
 		if err != nil {

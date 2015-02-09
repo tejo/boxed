@@ -184,6 +184,12 @@ type Delta struct {
 	Entries [][]interface{} `json:"entries"`
 }
 
+type DeltaPayLoad struct {
+	Delta struct {
+		Users []int `json:"users"`
+	} `json:"delta"`
+}
+
 type FileMetadata struct {
 	Size        string         `json:"size"`
 	Rev         string         `json:"rev"`
