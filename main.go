@@ -30,12 +30,12 @@ func main() {
 	router.GET("/webhook", WebHook)
 	router.GET("/account", Account)
 	router.GET("/oauth/callback", Callback)
-	// router.GET("/a/:year/:month/day/:slug", ArticleHandler)
 
 	log.Fatal(http.ListenAndServe(config.Port, router))
 }
 
 func refreshArticles(email string) {
+	datastore.DeleteArtilcles(email)
 	at, err := datastore.LoadUserToken(email)
 	if err != nil {
 		log.Fatal(err)
@@ -53,7 +53,7 @@ func refreshArticles(email string) {
 		article := datastore.ParseEntry(entry, content)
 		article.GenerateID(email)
 		article.Save()
-		log.Printf("processed article: %s  %s\n", article.Rev, article.ID)
+		log.Printf("processed rev: %s  path:%s\n", article.Rev, article.Path)
 	})
 }
 
