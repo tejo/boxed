@@ -159,6 +159,19 @@ func LoadUserTokenByUID(uid int) (dropbox.AccessToken, error) {
 	return LoadUserToken(email)
 }
 
+func GetUserEmailByUID(uid int) (string, error) {
+	var email string
+	DB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("UserData"))
+		email = string(b.Get([]byte(strconv.Itoa(uid))))
+		return nil
+	})
+	if email == "" {
+		return email, errors.New("email not found with the provided uid")
+	}
+	return email, nil
+}
+
 func LoadUserData(email string) (*dropbox.AccountInfo, error) {
 	var AccountInfo *dropbox.AccountInfo
 	err := DB.View(func(tx *bolt.Tx) error {

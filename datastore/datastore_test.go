@@ -53,6 +53,23 @@ func Test_SaveUserData(t *testing.T) {
 	a.Equal(userData, info)
 }
 
+func Test_GetUserEmailByUID(t *testing.T) {
+	a := assert.New(t)
+	info := &dropbox.AccountInfo{
+		Email:       "foo@bar.it",
+		Uid:         1234,
+		DisplayName: "pippo",
+	}
+	token := dropbox.AccessToken{Key: "a", Secret: "b"}
+	datastore.SaveUserData(info, token)
+
+	email, _ := datastore.GetUserEmailByUID(1234)
+	a.Equal(email, "foo@bar.it")
+
+	_, err := datastore.GetUserEmailByUID(1)
+	a.NotEqual(err, nil)
+}
+
 func Test_ParseArticle(t *testing.T) {
 	a := assert.New(t)
 	article := datastore.ParseEntry(fakeFileMetaData(), fakeFileContent())
