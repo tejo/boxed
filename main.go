@@ -83,8 +83,19 @@ func WebHook(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 			log.Println(err)
 			return
 		}
-		log.Printf("d = %+v\n", d)
+		log.Printf("processing %+v\n", d.Delta.Users)
+		go processChanges(d.Delta.Users)
 	}
+}
+
+func processChanges(users []int) {
+	for _, v := range users {
+		email, err := datastore.GetUserEmailByUID(v)
+		if err != nil {
+			go refreshArticles(email)
+		}
+	}
+
 }
 
 // saves the user id in session, save used data and access token in
