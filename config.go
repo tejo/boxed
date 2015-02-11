@@ -6,9 +6,12 @@ import (
 	"github.com/tejo/boxed/dropbox"
 )
 
+//config struct used for configure boxed
 type Config struct {
 	DefaultUserEmail string
-	CallbackUrl      string
+	HostWithProtocol string
+	CallbackURL      string
+	WebHookURL       string
 	Port             string
 	AppToken         dropbox.AppToken
 }
@@ -25,10 +28,22 @@ func init() {
 		Secret: os.Getenv("SECRET"),
 	}
 
-	if os.Getenv("CALLBACK_URL") != "" {
-		config.CallbackUrl = os.Getenv("CALLBACK_URL")
+	if os.Getenv("HOST_WITH_PROTOCOL") != "" {
+		config.HostWithProtocol = os.Getenv("HOST_WITH_PROTOCOL")
 	} else {
-		config.CallbackUrl = "http://localhost:8080/oauth/callback"
+		config.HostWithProtocol = "http://localhost:8080"
+	}
+
+	if os.Getenv("WEBHOOK_URL") != "" {
+		config.WebHookURL = os.Getenv("WEBHOOK_URL")
+	} else {
+		config.WebHookURL = "/webhook"
+	}
+
+	if os.Getenv("CALLBACK_URL") != "" {
+		config.CallbackURL = config.HostWithProtocol + os.Getenv("CALLBACK_URL")
+	} else {
+		config.CallbackURL = config.HostWithProtocol + "/oauth/callback"
 	}
 
 	if os.Getenv("PORT") != "" {

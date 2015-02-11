@@ -27,10 +27,10 @@ func main() {
 	router := httprouter.New()
 	router.GET("/", Index)
 	router.GET("/login", Login)
-	router.GET("/webhook", WebHook)
-	router.POST("/webhook", WebHook)
+	router.GET(config.WebHookURL, WebHook)
+	router.POST(config.WebHookURL, WebHook)
 	router.GET("/account", Account)
-	router.GET("/oauth/callback", Callback)
+	router.GET(config.CallbackURL, Callback)
 
 	log.Fatal(http.ListenAndServe(config.Port, router))
 }
@@ -62,7 +62,7 @@ func Login(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	withSession(w, r, func(session *sessions.Session) {
 		RequestToken, _ := dropbox.StartAuth(config.AppToken)
 		session.Values["RequestToken"] = RequestToken
-		url, _ := url.Parse(config.CallbackUrl)
+		url, _ := url.Parse(config.CallbackURL)
 		authURL := dropbox.GetAuthorizeURL(RequestToken, url)
 		session.Save(r, w)
 		http.Redirect(w, r, authURL.String(), 302)
@@ -91,7 +91,7 @@ func WebHook(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 func processChanges(users []int) {
 	for _, v := range users {
 		email, err := datastore.GetUserEmailByUID(v)
-		if err != nil {
+		if err == nil {
 			go refreshArticles(email)
 		}
 	}
