@@ -41,9 +41,9 @@ func init() {
 	}
 
 	if os.Getenv("CALLBACK_URL") != "" {
-		config.CallbackURL = config.HostWithProtocol + os.Getenv("CALLBACK_URL")
+		config.CallbackURL = os.Getenv("CALLBACK_URL")
 	} else {
-		config.CallbackURL = config.HostWithProtocol + "/oauth/callback"
+		config.CallbackURL = "/oauth/callback"
 	}
 
 	if os.Getenv("PORT") != "" {

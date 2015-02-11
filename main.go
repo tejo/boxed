@@ -35,34 +35,11 @@ func main() {
 	log.Fatal(http.ListenAndServe(config.Port, router))
 }
 
-func refreshArticles(email string) {
-	datastore.DeleteArtilcles(email)
-	at, err := datastore.LoadUserToken(email)
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-	dbc := dropbox.NewClient(at, config.AppToken)
-	meta, _ := dbc.GetMetadata("/published", true)
-	wait.Wait(len(meta.Contents), func(index int) {
-		entry := meta.Contents[index]
-		if entry.IsDir {
-			return
-		}
-		file, _ := dbc.GetFile(entry.Path)
-		content, _ := ioutil.ReadAll(file)
-		article := datastore.ParseEntry(entry, content)
-		article.GenerateID(email)
-		article.Save()
-		log.Printf("processed rev: %s  path:%s\n", article.Rev, article.Path)
-	})
-}
-
 func Login(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	withSession(w, r, func(session *sessions.Session) {
 		RequestToken, _ := dropbox.StartAuth(config.AppToken)
 		session.Values["RequestToken"] = RequestToken
-		url, _ := url.Parse(config.CallbackURL)
+		url, _ := url.Parse(config.HostWithProtocol + config.CallbackURL)
 		authURL := dropbox.GetAuthorizeURL(RequestToken, url)
 		session.Save(r, w)
 		http.Redirect(w, r, authURL.String(), 302)
@@ -86,6 +63,29 @@ func WebHook(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		log.Printf("processing %+v\n", d.Delta.Users)
 		go processChanges(d.Delta.Users)
 	}
+}
+
+func refreshArticles(email string) {
+	datastore.DeleteArtilcles(email)
+	at, err := datastore.LoadUserToken(email)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	dbc := dropbox.NewClient(at, config.AppToken)
+	meta, _ := dbc.GetMetadata("/published", true)
+	wait.Wait(len(meta.Contents), func(index int) {
+		entry := meta.Contents[index]
+		if entry.IsDir {
+			return
+		}
+		file, _ := dbc.GetFile(entry.Path)
+		content, _ := ioutil.ReadAll(file)
+		article := datastore.ParseEntry(entry, content)
+		article.GenerateID(email)
+		article.Save()
+		log.Printf("processed rev: %s  path:%s\n", article.Rev, article.Path)
+	})
 }
 
 func processChanges(users []int) {
