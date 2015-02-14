@@ -1,3 +1,4 @@
+// mostly of this code is borrowed from: https://gist.github.com/1671416
 package dropbox
 
 import (
@@ -5,13 +6,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"strconv"
 	"time"
 )
 
 const TimeFormat = time.RFC1123Z
+
+var Debug bool = false
 
 type OAuthToken struct {
 	Key    string `json:"key"`
@@ -59,6 +64,15 @@ func (e Error) Error() string {
 func doRequest(r *http.Request, consumerTok AppToken, accessTok token) (*FileReader, error) {
 	r.Header.Set("Authorization", buildAuthString(consumerTok, accessTok))
 	resp, err := http.DefaultClient.Do(r)
+
+	if Debug {
+		a, _ := httputil.DumpRequest(r, true)
+		log.Printf("request  \n%+v\n", string(a))
+
+		a, _ = httputil.DumpResponse(resp, true)
+		log.Printf("response  \n%+v\n", string(a))
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -253,14 +267,34 @@ const (
 	webHost     = "www.dropbox.com"
 )
 
-func (s *Client) GetDelta() (*Delta, error) {
+func (s *Client) GetDelta(params ...string) (*Delta, error) {
 	u := apiURL("/delta")
-	u.RawQuery = s.Config.localeQuery()
+	v := url.Values{}
+	if len(params) > 0 {
+		v.Set("path_prefix", params[0])
+	}
+	if len(params) > 1 {
+		v.Set("cursor", params[1])
+	}
+	u.RawQuery = s.Config.setLocale(v).Encode()
 	var delta Delta
 	if e := s.postForJson(u, &delta); e != nil {
 		return nil, e
 	}
 	return &delta, nil
+}
+
+func (s *Client) GetLatestCursor(pathPrefix string) (*[]interface{}, error) {
+	u := apiURL("/delta/latest_cursor")
+	// v := url.Values{}
+	// v.Set("path_prefix", pathPrefix)
+	// u.RawQuery = s.Config.setLocale(v).Encode()
+	u.RawQuery = s.Config.localeQuery()
+	var c []interface{}
+	if e := s.postForJson(u, &c); e != nil {
+		return nil, e
+	}
+	return &c, nil
 }
 
 func (s *Client) GetAccountInfo() (*AccountInfo, error) {
