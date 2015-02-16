@@ -12,7 +12,8 @@ import (
 	"time"
 
 	"github.com/boltdb/bolt"
-	"github.com/shurcooL/go/github_flavored_markdown"
+	"github.com/microcosm-cc/bluemonday"
+	"github.com/russross/blackfriday"
 	"github.com/tejo/boxed/dropbox"
 )
 
@@ -185,7 +186,8 @@ func LoadUserData(email string) (*dropbox.AccountInfo, error) {
 
 func ParseEntry(e dropbox.FileMetadata, c []byte) *Article {
 	article := extractEntryData(c)
-	article.Content = string(github_flavored_markdown.Markdown(c))
+	unsafe := blackfriday.MarkdownCommon(c)
+	article.Content = string(bluemonday.UGCPolicy().SanitizeBytes(unsafe))
 	article.FileMetadata = e
 	article.sanitizeArticleMetadata()
 	article.ParseTimeStamp()

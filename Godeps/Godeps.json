@@ -37,32 +37,8 @@
 			"Rev": "7001890e79eb6a002a5c8acfea9746508eb17829"
 		},
 		{
-			"ImportPath": "github.com/sergi/go-diff/diffmatchpatch",
-			"Rev": "97b2266dfe4bd4ea1b81a463322f04f8b724801e"
-		},
-		{
-			"ImportPath": "github.com/shurcooL/go/github_flavored_markdown",
-			"Rev": "b40bdba54a160588cb577a79b7893a8d8fb65c25"
-		},
-		{
-			"ImportPath": "github.com/shurcooL/go/highlight_go",
-			"Rev": "b40bdba54a160588cb577a79b7893a8d8fb65c25"
-		},
-		{
-			"ImportPath": "github.com/shurcooL/go/u/u7",
-			"Rev": "b40bdba54a160588cb577a79b7893a8d8fb65c25"
-		},
-		{
 			"ImportPath": "github.com/shurcooL/sanitized_anchor_name",
 			"Rev": "9a8b7d4e8f347bfa230879db9d7d4e4d9e19f962"
-		},
-		{
-			"ImportPath": "github.com/sourcegraph/annotate",
-			"Rev": "35fbe2df7c605a08bcd5d1cb66e7b794a247decd"
-		},
-		{
-			"ImportPath": "github.com/sourcegraph/syntaxhighlight",
-			"Rev": "1230936ecfad4640d05b4ef50798dcc7ffef4e40"
 		},
 		{
 			"ImportPath": "golang.org/x/net/html",
