@@ -135,6 +135,31 @@ func SaveUserData(info *dropbox.AccountInfo, token dropbox.AccessToken) error {
 	return err
 }
 
+func SaveCurrentCursor(email string, delta *dropbox.Delta) error {
+	var err error
+	err = DB.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("UserData"))
+
+		// saves user current cursor
+		err = b.Put([]byte(email+":current_cursor"), []byte(delta.Cursor))
+		return err
+	})
+	return err
+}
+
+func GetCurrenCursorByEmail(email string) (string, error) {
+	var cursor string
+	DB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("UserData"))
+		cursor = string(b.Get([]byte(email + ":current_cursor")))
+		return nil
+	})
+	if cursor == "" {
+		return cursor, errors.New("cursor not found with the provided email")
+	}
+	return cursor, nil
+}
+
 func LoadUserToken(email string) (dropbox.AccessToken, error) {
 	var AccessToken dropbox.AccessToken
 	err := DB.View(func(tx *bolt.Tx) error {

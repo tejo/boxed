@@ -53,6 +53,17 @@ func Test_SaveUserData(t *testing.T) {
 	a.Equal(userData, info)
 }
 
+func Test_SaveCurrentCursor(t *testing.T) {
+	a := assert.New(t)
+	delta := &dropbox.Delta{
+		Cursor: "foobar",
+	}
+	datastore.SaveCurrentCursor("foo@bar.it", delta)
+	c, err := datastore.GetCurrenCursorByEmail("foo@bar.it")
+	a.Equal(c, "foobar")
+	a.Equal(err, nil)
+}
+
 func Test_GetUserEmailByUID(t *testing.T) {
 	a := assert.New(t)
 	info := &dropbox.AccountInfo{
