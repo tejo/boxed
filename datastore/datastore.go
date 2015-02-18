@@ -44,7 +44,8 @@ func (a *Article) Save() error {
 	err = DB.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("UserArticles"))
 		article, err := json.Marshal(a)
-		err = b.Put([]byte(a.ID), []byte(article))
+		b.Put([]byte(a.ID), []byte(article))
+		b.Put([]byte(a.Path), []byte(a.ID))
 		return err
 	})
 	return err
@@ -55,6 +56,7 @@ func (a *Article) Delete() error {
 	err = DB.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("UserArticles"))
 		b.Delete([]byte(a.ID))
+		b.Delete([]byte(a.Path))
 		return err
 	})
 	return err

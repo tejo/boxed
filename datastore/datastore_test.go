@@ -119,6 +119,11 @@ func Test_Article_Save(t *testing.T) {
 	a.Equal(article.Permalink, "this-is-my-first-article")
 	a.Equal(article.CreatedAt, "2015-10-10")
 	a.Equal(article.FileMetadata, fakeFileMetaData())
+	datastore.DB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("UserArticles"))
+		a.Equal(string(b.Get([]byte(article.Path))), article.ID)
+		return nil
+	})
 }
 
 func Test_Article_Delete(t *testing.T) {
