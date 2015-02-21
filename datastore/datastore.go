@@ -44,7 +44,10 @@ func (a *Article) Save() error {
 	err = DB.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("UserArticles"))
 		article, err := json.Marshal(a)
+		// save article data
 		b.Put([]byte(a.ID), []byte(article))
+		// save mapping for article path to article generated id
+		// useful for getting article by dropbpx path
 		b.Put([]byte(a.Path), []byte(a.ID))
 		return err
 	})
