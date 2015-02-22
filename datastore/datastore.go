@@ -142,13 +142,13 @@ func SaveUserData(info *dropbox.AccountInfo, token dropbox.AccessToken) error {
 	return err
 }
 
-func SaveCurrentCursor(email string, delta *dropbox.Delta) error {
+func SaveCurrentCursor(email string, cursor string) error {
 	var err error
 	err = DB.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("UserData"))
 
 		// saves user current cursor
-		err = b.Put([]byte(email+":current_cursor"), []byte(delta.Cursor))
+		err = b.Put([]byte(email+":current_cursor"), []byte(cursor))
 		return err
 	})
 	return err
@@ -258,6 +258,16 @@ func LoadArticle(ID string) (*Article, error) {
 		return &a, errors.New("article not found")
 	}
 	return &a, nil
+}
+
+func LoadArticleByComputedPath(computedPath string) (*Article, error) {
+	var id []byte
+	DB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("UserArticles"))
+		id = b.Get([]byte(computedPath))
+		return nil
+	})
+	return LoadArticle(string(id))
 }
 
 func DeleteArtilcles(email string) {

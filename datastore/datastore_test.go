@@ -55,10 +55,7 @@ func Test_SaveUserData(t *testing.T) {
 
 func Test_SaveCurrentCursor(t *testing.T) {
 	a := assert.New(t)
-	delta := &dropbox.Delta{
-		Cursor: "foobar",
-	}
-	datastore.SaveCurrentCursor("foo@bar.it", delta)
+	datastore.SaveCurrentCursor("foo@bar.it", "foobar")
 	c, err := datastore.GetCurrenCursorByEmail("foo@bar.it")
 	a.Equal(c, "foobar")
 	a.Equal(err, nil)
@@ -170,6 +167,17 @@ func Test_LoadArticle(t *testing.T) {
 	//test article not found
 	_, err := datastore.LoadArticle("foo")
 	a.NotEqual(err, nil)
+}
+
+func Test_LoadArticleByComputedPath(t *testing.T) {
+	a := assert.New(t)
+	article := datastore.ParseEntry(fakeFileMetaData(), fakeFileContent())
+	article.GenerateID("foo@bar.it")
+	article.Save()
+
+	//load article by ComputedPath eg ("foo@bar:")
+	loadedArticle, _ := datastore.LoadArticleByComputedPath(article.ComputedPath)
+	a.Equal(article, loadedArticle)
 }
 
 func Test_DeleteArticles(t *testing.T) {
