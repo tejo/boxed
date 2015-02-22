@@ -86,26 +86,8 @@ func WebHook(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 }
 
 func refreshArticles(email string) {
-	datastore.DeleteArtilcles(email)
-	at, err := datastore.LoadUserToken(email)
-	if err != nil {
-		log.Fatal(err)
-		return
-	}
-	dbc := dropbox.NewClient(at, config.AppToken)
-	meta, _ := dbc.GetMetadata("/published", true)
-	wait.Wait(len(meta.Contents), func(index int) {
-		entry := meta.Contents[index]
-		if entry.IsDir {
-			return
-		}
-		file, _ := dbc.GetFile(entry.Path)
-		content, _ := ioutil.ReadAll(file)
-		article := datastore.ParseEntry(entry, content)
-		article.GenerateID(email)
-		article.Save()
-		log.Printf("processed rev: %s  path:%s\n", article.Rev, article.Path)
-	})
+	currentCursor, _ := datastore.GetCurrenCursorByEmail(email)
+	processUserDelta(email, currentCursor)
 }
 
 func processChanges(users []int) {
@@ -113,7 +95,7 @@ func processChanges(users []int) {
 		email, err := datastore.GetUserEmailByUID(v)
 		if err == nil {
 			currentCursor, _ := datastore.GetCurrenCursorByEmail(email)
-			go processUserDelta(email, currentCursor)
+			processUserDelta(email, currentCursor)
 		}
 	}
 
@@ -128,7 +110,6 @@ func processUserDelta(email, cursor string) {
 	dbc := dropbox.NewClient(at, config.AppToken)
 	d, _ := dbc.GetDelta("/published", cursor)
 	datastore.SaveCurrentCursor(email, d.Cursor)
-	fmt.Printf("d = %+v\n", d)
 	wait.Wait(len(d.Updated), func(index int) {
 		entry, _ := dbc.GetMetadata(d.Updated[index], true)
 		file, _ := dbc.GetFile(d.Updated[index])
