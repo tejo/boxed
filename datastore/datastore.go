@@ -20,19 +20,21 @@ import (
 var DB *bolt.DB
 
 type Article struct {
-	ID        string
-	Content   string
-	Title     string `json:"title"`
-	CreatedAt string `json:"created-at"`
-	TimeStamp string `json:"timestamp"`
-	Permalink string `json:"permalink"`
-	Slug      string `json:"slug"`
+	ID           string
+	ComputedPath string
+	Content      string
+	Title        string `json:"title"`
+	CreatedAt    string `json:"created-at"`
+	TimeStamp    string `json:"timestamp"`
+	Permalink    string `json:"permalink"`
+	Slug         string `json:"slug"`
 	dropbox.FileMetadata
 }
 
 func (a *Article) GenerateID(email string) {
 	a.generateSlug()
 	a.ID = email + ":article:" + a.Slug
+	a.ComputedPath = email + ":" + a.Path
 }
 
 func (a *Article) generateSlug() {
@@ -48,7 +50,7 @@ func (a *Article) Save() error {
 		b.Put([]byte(a.ID), []byte(article))
 		// save mapping for article path to article generated id
 		// useful for getting article by dropbpx path
-		b.Put([]byte(a.Path), []byte(a.ID))
+		b.Put([]byte(a.ComputedPath), []byte(a.ID))
 		return err
 	})
 	return err
@@ -59,7 +61,7 @@ func (a *Article) Delete() error {
 	err = DB.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("UserArticles"))
 		b.Delete([]byte(a.ID))
-		b.Delete([]byte(a.Path))
+		b.Delete([]byte(a.ComputedPath))
 		return err
 	})
 	return err

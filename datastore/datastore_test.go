@@ -121,7 +121,7 @@ func Test_Article_Save(t *testing.T) {
 	a.Equal(article.FileMetadata, fakeFileMetaData())
 	datastore.DB.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("UserArticles"))
-		a.Equal(string(b.Get([]byte(article.Path))), article.ID)
+		a.Equal(string(b.Get([]byte(article.ComputedPath))), article.ID)
 		return nil
 	})
 }
