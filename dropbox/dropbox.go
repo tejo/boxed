@@ -192,10 +192,12 @@ type AccountInfo struct {
 }
 
 type Delta struct {
-	Reset   bool            `json:"reset"`
-	Cursor  string          `json:"cursor"`
-	HasMore bool            `json:"has_more"`
-	Entries [][]interface{} `json:"entries"`
+	Reset   bool                `json:"reset"`
+	Cursor  string              `json:"cursor"`
+	HasMore bool                `json:"has_more"`
+	Entries [][]json.RawMessage `json:"entries"`
+	Updated []string
+	Deleted []string
 }
 
 type DeltaPayLoad struct {
@@ -281,7 +283,25 @@ func (s *Client) GetDelta(params ...string) (*Delta, error) {
 	if e := s.postForJson(u, &delta); e != nil {
 		return nil, e
 	}
-	return &delta, nil
+	return ParseDelta(&delta), nil
+}
+
+func ParseDelta(d *Delta) *Delta {
+	for _, v := range d.Entries {
+		var path string
+		json.Unmarshal(v[0], &path)
+
+		if string(v[1]) == "null" {
+			d.Deleted = append(d.Deleted, path)
+		} else {
+			var f FileMetadata
+			json.Unmarshal(v[1], &f)
+			if !f.IsDir {
+				d.Updated = append(d.Updated, path)
+			}
+		}
+	}
+	return d
 }
 
 func (s *Client) GetLatestCursor(pathPrefix string) (*[]interface{}, error) {
