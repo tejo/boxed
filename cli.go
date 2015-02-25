@@ -28,7 +28,7 @@ func handleCommands() {
 	if *oauth {
 		requestToken, _ := dropbox.StartAuth(config.AppToken)
 		url, _ := url.Parse("")
-		fmt.Println("open in a web browser the following url and authorize boxed app:\n")
+		fmt.Println("open in a web browser the following url and authorize boxed app:")
 		fmt.Println(dropbox.GetAuthorizeURL(requestToken, url))
 		fmt.Println("\n\npress enter when ready")
 		reader := bufio.NewReader(os.Stdin)

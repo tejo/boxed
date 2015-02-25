@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"encoding/gob"
 	"encoding/json"
 	"fmt"
@@ -9,8 +8,8 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"text/template"
 
-	"github.com/boltdb/bolt"
 	"github.com/gorilla/sessions"
 	"github.com/julienschmidt/httprouter"
 	"github.com/markbates/going/wait"
@@ -31,6 +30,8 @@ func main() {
 	router.POST(config.WebHookURL, WebHook)
 	router.GET("/account", Account)
 	router.GET(config.CallbackURL, Callback)
+
+	router.ServeFiles("/static/*filepath", http.Dir("public/"))
 
 	log.Fatal(http.ListenAndServe(config.Port, router))
 }
@@ -123,6 +124,7 @@ func processUserDelta(email, cursor string) {
 		a, err := datastore.LoadArticleByComputedPath(email + ":" + v)
 		if err == nil {
 			a.Delete()
+			log.Printf("deleted: %s", v)
 		}
 	}
 }
@@ -144,18 +146,16 @@ func processUserDelta(email, cursor string) {
 // }
 
 func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	datastore.DB.View(func(tx *bolt.Tx) error {
-		c := tx.Bucket([]byte("UserArticles")).Cursor()
+	var articles []*datastore.Article
+	for _, v := range datastore.LoadArticleIDs(config.DefaultUserEmail) {
+		a, _ := datastore.LoadArticle(v)
+		articles = append(articles, a)
+	}
 
-		prefix := []byte(config.DefaultUserEmail + ":article:")
-		for k, v := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, v = c.Next() {
-			var a datastore.Article
-			json.Unmarshal(v, &a)
-			fmt.Fprint(w, a)
-		}
-
-		return nil
-	})
+	t := template.Must(template.New("layout").ParseFiles("templates/layout.html", "templates/index.html"))
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	t.ExecuteTemplate(w, "layout", articles)
 }
 
 func Account(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
