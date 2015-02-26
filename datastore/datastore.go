@@ -20,25 +20,17 @@ import (
 var DB *bolt.DB
 
 type Article struct {
-	ID           string
-	ComputedPath string
-	Content      string
-	Title        string `json:"title"`
-	CreatedAt    string `json:"created-at"`
-	TimeStamp    string `json:"timestamp"`
-	Permalink    string `json:"permalink"`
-	Slug         string `json:"slug"`
+	ID        string
+	Content   string
+	Title     string `json:"title"`
+	CreatedAt string `json:"created-at"`
+	TimeStamp string `json:"timestamp"`
+	Permalink string `json:"permalink"`
 	dropbox.FileMetadata
 }
 
 func (a *Article) GenerateID(email string) {
-	a.generateSlug()
-	a.ID = email + ":article:" + a.Slug
-	a.ComputedPath = email + ":" + a.Path
-}
-
-func (a *Article) generateSlug() {
-	a.Slug = "/" + a.CreatedAt + "/" + a.Permalink
+	a.ID = email + ":article:" + a.Path
 }
 
 func (a *Article) Save() error {
@@ -48,9 +40,6 @@ func (a *Article) Save() error {
 		article, err := json.Marshal(a)
 		// save article data
 		b.Put([]byte(a.ID), []byte(article))
-		// save mapping for article path to article generated id
-		// useful for getting article by dropbpx path
-		b.Put([]byte(a.ComputedPath), []byte(a.ID))
 		return err
 	})
 	return err
@@ -61,7 +50,6 @@ func (a *Article) Delete() error {
 	err = DB.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("UserArticles"))
 		b.Delete([]byte(a.ID))
-		b.Delete([]byte(a.ComputedPath))
 		return err
 	})
 	return err
@@ -226,24 +214,58 @@ func ParseEntry(e dropbox.FileMetadata, c []byte) *Article {
 	return article
 }
 
-// load user article ids, sorted by created at
-func LoadArticleIDs(email string) []string {
-	ids, sortedIDs := []string{}, []string{}
+func LoadArticleIndex(email string) [][]string {
+	var index [][]string
+	err := DB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("UserArticles"))
+		i := b.Get([]byte(email + ":index"))
+		json.Unmarshal(i, &index)
+		return nil
+	})
+	if err != nil {
+		log.Panic(err)
+	}
+	return index
+}
+
+// saves the index of articles in inverse cronological order
+// saves a slice of slices containing Permalink, ID, Title
+// useful for listing articles
+func ArticlesReindex(email string) {
+	articles := map[string][]string{}
+	sortedArticles := [][]string{}
+	ids := []string{}
+	//populate the map
 	DB.View(func(tx *bolt.Tx) error {
 		c := tx.Bucket([]byte("UserArticles")).Cursor()
 		prefix := []byte(email + ":article:")
-		for k, _ := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, _ = c.Next() {
-			ids = append(ids, string(k))
+		for k, v := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, v = c.Next() {
+			var a Article
+			json.Unmarshal(v, &a)
+			id := a.TimeStamp + a.Permalink
+			ids = append(ids, id)
+			articles[id] = []string{a.Permalink, a.ID, a.Title}
 		}
 		return nil
 	})
 
+	//sort ids by string (= date)
 	sort.Strings(ids)
 
+	//populate the slice index
 	for i := len(ids) - 1; i >= 0; i-- {
-		sortedIDs = append(sortedIDs, ids[i])
+		sortedArticles = append(sortedArticles, articles[ids[i]])
 	}
-	return sortedIDs
+
+	//marshall and save it
+	DB.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte("UserArticles"))
+		index, err := json.Marshal(sortedArticles)
+		// save article data
+		b.Put([]byte(email+":index"), []byte(index))
+		return err
+	})
+	// return sortedIDs
 }
 
 func LoadArticle(ID string) (*Article, error) {
@@ -258,16 +280,6 @@ func LoadArticle(ID string) (*Article, error) {
 		return &a, errors.New("article not found")
 	}
 	return &a, nil
-}
-
-func LoadArticleByComputedPath(computedPath string) (*Article, error) {
-	var id []byte
-	DB.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte("UserArticles"))
-		id = b.Get([]byte(computedPath))
-		return nil
-	})
-	return LoadArticle(string(id))
 }
 
 func DeleteArtilcles(email string) {
