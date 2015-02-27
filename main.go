@@ -152,7 +152,13 @@ func processUserDelta(email, cursor string) {
 func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	index := datastore.LoadArticleIndex(config.DefaultUserEmail)
 	var articles []*datastore.Article
-	for _, v := range index[:3] {
+	var i [][]string
+	if len(index) > 3 {
+		i = index[:3]
+	} else {
+		i = index
+	}
+	for _, v := range i {
 		a, _ := datastore.LoadArticle(v[1])
 		articles = append(articles, a)
 	}
@@ -160,7 +166,13 @@ func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	t := template.Must(template.New("layout").ParseFiles("templates/layout.html", "templates/index.html"))
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	t.ExecuteTemplate(w, "layout", articles)
+	t.ExecuteTemplate(w, "layout", struct {
+		Articles []*datastore.Article
+		Index    [][]string
+	}{
+		Articles: articles,
+		Index:    index,
+	})
 }
 
 func Account(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {

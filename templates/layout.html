@@ -52,8 +52,8 @@
           <div class="sidebar-module">
             <h4>Archives</h4>
             <ol class="list-unstyled">
-            {{range .}}
-            <li><a href="/article{{.Permalink}}">{{.Title}}</a></li>
+            {{range $index, $v := .Index}}
+            <li><a href="/articles/{{index  $v 0 }}">{{index  $v 2 }}</a></li>
             {{end}}
             </ol>
           </div>
