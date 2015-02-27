@@ -29,6 +29,7 @@ func main() {
 	router.GET(config.WebHookURL, WebHook)
 	router.POST(config.WebHookURL, WebHook)
 	router.GET("/account", Account)
+	router.GET("/articles/:created_at/:id", ArticleHandler)
 	router.GET(config.CallbackURL, Callback)
 
 	router.ServeFiles("/static/*filepath", http.Dir("public/"))
@@ -133,33 +134,39 @@ func processUserDelta(email, cursor string) {
 	datastore.SaveCurrentCursor(email, d.Cursor)
 }
 
-// func ArticleHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-// 	fmt.Printf("ps = %+v\n", ps.ByName("articleslug"))
-// 	db.View(func(tx *bolt.Tx) error {
-// 		c := tx.Bucket([]byte("UserArticles")).Cursor()
+func ArticleHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	index := datastore.LoadArticleIndex(config.DefaultUserEmail)
+	var article *datastore.Article
+	for _, v := range index {
+		if v.Permalink == ps.ByName("id") {
+			article, _ = datastore.LoadArticle(v.ID)
+			continue
+		}
+	}
 
-// 		prefix := []byte(defaultUserEmail + ":article:")
-// 		for k, v := c.Seek(prefix); bytes.HasPrefix(k, prefix); k, v = c.Next() {
-// 			var a Article
-// 			json.Unmarshal(v, &a)
-// 			fmt.Fprint(w, a.Path)
-// 		}
-
-// 		return nil
-// 	})
-// }
+	t := template.Must(template.New("layout").ParseFiles("templates/layout.html", "templates/article.html"))
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	t.ExecuteTemplate(w, "layout", struct {
+		Article *datastore.Article
+		Index   []datastore.Article
+	}{
+		Article: article,
+		Index:   index,
+	})
+}
 
 func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	index := datastore.LoadArticleIndex(config.DefaultUserEmail)
 	var articles []*datastore.Article
-	var i [][]string
+	var i []datastore.Article
 	if len(index) > 3 {
 		i = index[:3]
 	} else {
 		i = index
 	}
 	for _, v := range i {
-		a, _ := datastore.LoadArticle(v[1])
+		a, _ := datastore.LoadArticle(v.ID)
 		articles = append(articles, a)
 	}
 
@@ -168,7 +175,7 @@ func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	w.WriteHeader(http.StatusOK)
 	t.ExecuteTemplate(w, "layout", struct {
 		Articles []*datastore.Article
-		Index    [][]string
+		Index    []datastore.Article
 	}{
 		Articles: articles,
 		Index:    index,

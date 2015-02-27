@@ -162,7 +162,7 @@ func Test_DeleteArticles(t *testing.T) {
 	article.GenerateID("foo@bar.it")
 	article.Save()
 	datastore.DeleteArtilcles("foo@bar.it")
-	a.Equal(len(datastore.LoadArticleIDs("foo@bar.it")), 0)
+	a.Equal(len(datastore.LoadArticleIndex("foo@bar.it")), 0)
 }
 
 func Test_LoadArticleIndex(t *testing.T) {
@@ -187,9 +187,10 @@ func Test_LoadArticleIndex(t *testing.T) {
 	datastore.ArticlesReindex("foo@bar.it")
 	index := datastore.LoadArticleIndex("foo@bar.it")
 
-	a.Contains(index[0][0], "a2")
-	a.Contains(index[0][1], anotherArticle.ID)
-	a.Contains(index[0][2], "t2")
+	a.Contains(index[0].Permalink, "a2")
+	a.Contains(index[0].ID, anotherArticle.ID)
+	a.Contains(index[0].Title, "t2")
+	a.Contains(index[0].CreatedAt, "2014-12-02")
 }
 
 func fakeFileMetaData() dropbox.FileMetadata {

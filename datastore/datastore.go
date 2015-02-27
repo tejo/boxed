@@ -214,8 +214,8 @@ func ParseEntry(e dropbox.FileMetadata, c []byte) *Article {
 	return article
 }
 
-func LoadArticleIndex(email string) [][]string {
-	var index [][]string
+func LoadArticleIndex(email string) []Article {
+	var index []Article
 	err := DB.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("UserArticles"))
 		i := b.Get([]byte(email + ":index"))
@@ -232,10 +232,10 @@ func LoadArticleIndex(email string) [][]string {
 // saves a slice of slices containing Permalink, ID, Title
 // useful for listing articles
 func ArticlesReindex(email string) {
-	articles := map[string][]string{}
-	sortedArticles := [][]string{}
-	ids := []string{}
-	//populate the map
+	articles := map[string]Article{}
+	var sortedArticles []Article
+	var ids []string
+
 	DB.View(func(tx *bolt.Tx) error {
 		c := tx.Bucket([]byte("UserArticles")).Cursor()
 		prefix := []byte(email + ":article:")
@@ -244,7 +244,9 @@ func ArticlesReindex(email string) {
 			json.Unmarshal(v, &a)
 			id := a.TimeStamp + a.Permalink
 			ids = append(ids, id)
-			articles[id] = []string{a.Permalink, a.ID, a.Title}
+			//clear article content to save space in the index
+			a.Content = ""
+			articles[id] = a
 		}
 		return nil
 	})
