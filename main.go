@@ -110,7 +110,15 @@ func processUserDelta(email, cursor string) {
 	}
 	dbc := dropbox.NewClient(at, config.AppToken)
 	d, _ := dbc.GetDelta("/published", cursor)
-	datastore.SaveCurrentCursor(email, d.Cursor)
+
+	for _, v := range d.Deleted {
+		a, err := datastore.LoadArticle(email + ":article:" + v)
+		if err == nil {
+			a.Delete()
+			log.Printf("deleted: %s", v)
+		}
+	}
+
 	wait.Wait(len(d.Updated), func(index int) {
 		entry, _ := dbc.GetMetadata(d.Updated[index], true)
 		file, _ := dbc.GetFile(d.Updated[index])
@@ -120,13 +128,9 @@ func processUserDelta(email, cursor string) {
 		article.Save()
 		log.Printf("updated: %s", article.Path)
 	})
-	for _, v := range d.Deleted {
-		a, err := datastore.LoadArticleByComputedPath(email + ":" + v)
-		if err == nil {
-			a.Delete()
-			log.Printf("deleted: %s", v)
-		}
-	}
+
+	datastore.ArticlesReindex(email)
+	datastore.SaveCurrentCursor(email, d.Cursor)
 }
 
 // func ArticleHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -146,9 +150,10 @@ func processUserDelta(email, cursor string) {
 // }
 
 func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	index := datastore.LoadArticleIndex(config.DefaultUserEmail)
 	var articles []*datastore.Article
-	for _, v := range datastore.LoadArticleIDs(config.DefaultUserEmail) {
-		a, _ := datastore.LoadArticle(v)
+	for _, v := range index[:3] {
+		a, _ := datastore.LoadArticle(v[1])
 		articles = append(articles, a)
 	}
 
