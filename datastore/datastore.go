@@ -130,23 +130,23 @@ func SaveUserData(info *dropbox.AccountInfo, token dropbox.AccessToken) error {
 	return err
 }
 
-func SaveCurrentCursor(email string, cursor string) error {
+func SaveCurrentCursor(email, path, cursor string) error {
 	var err error
 	err = DB.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("UserData"))
 
 		// saves user current cursor
-		err = b.Put([]byte(email+":current_cursor"), []byte(cursor))
+		err = b.Put([]byte(email+path+":current_cursor"), []byte(cursor))
 		return err
 	})
 	return err
 }
 
-func GetCurrenCursorByEmail(email string) (string, error) {
+func GetCurrentCursor(email, path string) (string, error) {
 	var cursor string
 	DB.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("UserData"))
-		cursor = string(b.Get([]byte(email + ":current_cursor")))
+		cursor = string(b.Get([]byte(email + path + ":current_cursor")))
 		return nil
 	})
 	if cursor == "" {

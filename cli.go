@@ -53,29 +53,30 @@ func handleCommands() {
 }
 
 func refreshArticles(email string) {
-	currentCursor, _ := datastore.GetCurrenCursorByEmail(email)
-	processUserDelta(email, currentCursor)
+	processUserDelta(email)
 }
 
 func processChanges(users []int) {
 	for _, v := range users {
 		email, err := datastore.GetUserEmailByUID(v)
 		if err == nil {
-			currentCursor, _ := datastore.GetCurrenCursorByEmail(email)
-			processUserDelta(email, currentCursor)
+			go processUserDelta(email)
 		}
 	}
 
 }
 
-func processUserDelta(email, cursor string) {
+func processUserDelta(email string) {
+	articlesCursor, _ := datastore.GetCurrentCursor(email, "/published")
 	at, err := datastore.LoadUserToken(email)
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
 	dbc := dropbox.NewClient(at, config.AppToken)
-	d, _ := dbc.GetDelta("/published", cursor)
+
+	//process articles
+	d, _ := dbc.GetDelta("/published", articlesCursor)
 
 	for _, v := range d.Deleted {
 		a, err := datastore.LoadArticle(email + ":article:" + v)
@@ -96,5 +97,28 @@ func processUserDelta(email, cursor string) {
 	})
 
 	datastore.ArticlesReindex(email)
-	datastore.SaveCurrentCursor(email, d.Cursor)
+	datastore.SaveCurrentCursor(email, "/published", d.Cursor)
+
+	//process images
+	imageCursor, _ := datastore.GetCurrentCursor(email, "/images")
+	d, err = dbc.GetDelta("/images", imageCursor)
+	for _, v := range d.Deleted {
+		err := os.Remove("./public" + v)
+		if err != nil {
+			log.Println(err)
+		}
+		log.Printf("deleted: %s", v)
+	}
+
+	wait.Wait(len(d.Updated), func(index int) {
+		file, _ := dbc.GetFile(d.Updated[index])
+		content, _ := ioutil.ReadAll(file)
+		err = ioutil.WriteFile("./public"+d.Updated[index], content, 0644)
+		if err != nil {
+			log.Println(err)
+		}
+		log.Printf("updated: %s", d.Updated[index])
+	})
+	datastore.SaveCurrentCursor(email, "/images", d.Cursor)
+
 }

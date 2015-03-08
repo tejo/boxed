@@ -55,8 +55,8 @@ func Test_SaveUserData(t *testing.T) {
 
 func Test_SaveCurrentCursor(t *testing.T) {
 	a := assert.New(t)
-	datastore.SaveCurrentCursor("foo@bar.it", "foobar")
-	c, err := datastore.GetCurrenCursorByEmail("foo@bar.it")
+	datastore.SaveCurrentCursor("foo@bar.it", "/published", "foobar")
+	c, err := datastore.GetCurrentCursor("foo@bar.it", "/published")
 	a.Equal(c, "foobar")
 	a.Equal(err, nil)
 }

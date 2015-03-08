@@ -127,10 +127,6 @@ func Account(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 			return
 		}
 		fmt.Fprintf(w, "info = %+v\n", info)
-
-		// dropbox.Debug = true
-		currentCursor, _ := datastore.GetCurrenCursorByEmail(email)
-		processUserDelta(email, currentCursor)
 	})
 }
 
