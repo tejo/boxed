@@ -320,6 +320,5 @@ func extractEntryData(c []byte) *Article {
 }
 
 func fixImagePaths(c []byte) []byte {
-	content := string(c)
-	return []byte(strings.Replace(content, "../images", "/static/images", -1))
+	return bytes.Replace(c, []byte("../images"), []byte("/static/images"), -1)
 }
