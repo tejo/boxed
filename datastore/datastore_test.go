@@ -82,6 +82,7 @@ func Test_ParseArticle(t *testing.T) {
 	a := assert.New(t)
 	article := datastore.ParseEntry(fakeFileMetaData(), fakeFileContent())
 	a.Contains(article.Content, "my first article</h1>")
+	a.Contains(article.Content, "/static/images/foo.jpg")
 	a.Equal(article.Title, "this is my first article")
 	a.Equal(article.Permalink, "this-is-my-first-article")
 	a.Equal(article.CreatedAt, "2015-10-10")
@@ -210,6 +211,9 @@ func fakeFileContent() []byte {
 }-->
 
 # my first article
+
+![arcangelo](../images/foo.jpg")
+
 	`
 	return []byte(b)
 }

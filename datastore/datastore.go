@@ -206,7 +206,7 @@ func LoadUserData(email string) (*dropbox.AccountInfo, error) {
 
 func ParseEntry(e dropbox.FileMetadata, c []byte) *Article {
 	article := extractEntryData(c)
-	unsafe := blackfriday.MarkdownCommon(c)
+	unsafe := blackfriday.MarkdownCommon(fixImagePaths(c))
 	article.Content = string(bluemonday.UGCPolicy().SanitizeBytes(unsafe))
 	article.FileMetadata = e
 	article.sanitizeArticleMetadata()
@@ -317,4 +317,9 @@ func extractEntryData(c []byte) *Article {
 		}
 	}
 	return &article
+}
+
+func fixImagePaths(c []byte) []byte {
+	content := string(c)
+	return []byte(strings.Replace(content, "../images", "/static/images", -1))
 }
