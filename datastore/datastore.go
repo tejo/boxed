@@ -320,5 +320,5 @@ func extractEntryData(c []byte) *Article {
 }
 
 func fixImagePaths(c []byte) []byte {
-	return bytes.Replace(c, []byte("../images"), []byte("/static/images"), -1)
+	return bytes.Replace(c, []byte("../images"), []byte("/images"), -1)
 }

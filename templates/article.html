@@ -2,7 +2,7 @@
   {{with .Article}}
     <div class="blog-post">
       <h2 class="blog-post-title">{{.Title}}</h2>
-      <p class="blog-post-meta">{{.CreatedAt}} <a href="/articles/{{.CreatedAt}}/{{.Permalink}}">permalink</a></p>
+      <p class="blog-post-meta">{{.CreatedAt}} <a href="/{{.Permalink}}">permalink</a></p>
       {{.Content}}
     </div>
   {{end}}

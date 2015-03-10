@@ -9,8 +9,9 @@ import (
 	"net/url"
 	"text/template"
 
+	"github.com/codegangsta/negroni"
+	"github.com/gorilla/pat"
 	"github.com/gorilla/sessions"
-	"github.com/julienschmidt/httprouter"
 	"github.com/tejo/boxed/datastore"
 	"github.com/tejo/boxed/dropbox"
 )
@@ -26,21 +27,22 @@ func main() {
 
 	handleCommands()
 
-	router := httprouter.New()
-	router.GET("/", Index)
-	router.GET("/login", Login)
-	router.GET(config.WebHookURL, WebHook)
-	router.POST(config.WebHookURL, WebHook)
-	router.GET("/account", Account)
-	router.GET("/articles/:created_at/:id", ArticleHandler)
-	router.GET(config.CallbackURL, Callback)
+	p := pat.New()
+	p.Get("/login", Login)
+	p.Get(config.WebHookURL, WebHook)
+	p.Post(config.WebHookURL, WebHook)
+	p.Get("/account", Account)
+	p.Get("/{id}", ArticleHandler)
+	p.Get(config.CallbackURL, Callback)
+	p.Get("/", Index)
 
-	router.ServeFiles("/static/*filepath", http.Dir("public/"))
+	n := negroni.Classic()
+	n.UseHandler(p)
 
-	log.Fatal(http.ListenAndServe(config.Port, router))
+	log.Fatal(http.ListenAndServe(config.Port, n))
 }
 
-func WebHook(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func WebHook(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		fmt.Fprintf(w, "%s", r.URL.Query().Get("challenge"))
 		return
@@ -59,11 +61,11 @@ func WebHook(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	}
 }
 
-func ArticleHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func ArticleHandler(w http.ResponseWriter, r *http.Request) {
 	index := datastore.LoadArticleIndex(config.DefaultUserEmail)
 	var article *datastore.Article
 	for _, v := range index {
-		if v.Permalink == ps.ByName("id") {
+		if v.Permalink == r.URL.Query().Get(":id") {
 			article, _ = datastore.LoadArticle(v.ID)
 			continue
 		}
@@ -80,7 +82,7 @@ func ArticleHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params
 	})
 }
 
-func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func Index(w http.ResponseWriter, r *http.Request) {
 	index := datastore.LoadArticleIndex(config.DefaultUserEmail)
 	var articles []*datastore.Article
 	var i []datastore.Article
@@ -105,7 +107,7 @@ func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	})
 }
 
-func Account(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func Account(w http.ResponseWriter, r *http.Request) {
 	withSession(w, r, func(session *sessions.Session) {
 		var AccessToken dropbox.AccessToken
 
@@ -130,7 +132,7 @@ func Account(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	})
 }
 
-func Login(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func Login(w http.ResponseWriter, r *http.Request) {
 	withSession(w, r, func(session *sessions.Session) {
 		RequestToken, _ := dropbox.StartAuth(config.AppToken)
 		session.Values["RequestToken"] = RequestToken
@@ -143,7 +145,7 @@ func Login(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 // saves the user id in session, save used data and access token in
 // db, creates the default folders
-func Callback(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func Callback(w http.ResponseWriter, r *http.Request) {
 	withSession(w, r, func(session *sessions.Session) {
 		RequestToken := session.Values["RequestToken"].(dropbox.RequestToken)
 		AccessToken, _ := dropbox.FinishAuth(config.AppToken, RequestToken)

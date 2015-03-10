@@ -10,9 +10,9 @@
 
     <title>Blog Template for Bootstrap</title>
 
-    <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
 
-    <link href="/static/css/blog.css" rel="stylesheet">
+    <link href="/css/blog.css" rel="stylesheet">
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/default.min.css">
     <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>
@@ -56,7 +56,7 @@
             <h4>Archives</h4>
             <ol class="list-unstyled">
             {{range .Index}}
-            <li><a href="/articles/{{.CreatedAt}}/{{.Permalink}}">{{.Title}}</a></li>
+            <li><a href="/{{.Permalink}}">{{.Title}}</a></li>
             {{end}}
             </ol>
           </div>
