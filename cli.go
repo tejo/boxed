@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"path/filepath"
 
 	"github.com/markbates/going/wait"
 	"github.com/tejo/boxed/datastore"
@@ -113,6 +114,8 @@ func processUserDelta(email string) {
 	wait.Wait(len(d.Updated), func(index int) {
 		file, _ := dbc.GetFile(d.Updated[index])
 		content, _ := ioutil.ReadAll(file)
+		imgPath, _ := filepath.Abs("./public" + d.Updated[index])
+		os.MkdirAll(filepath.Dir(imgPath), 0755)
 		err = ioutil.WriteFile("./public"+d.Updated[index], content, 0644)
 		if err != nil {
 			log.Println(err)
