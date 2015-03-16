@@ -19,6 +19,7 @@ import (
 var templates = map[string]*template.Template{
 	"index":   template.Must(template.New("layout").ParseFiles("templates/layout.html", "templates/index.html")),
 	"article": template.Must(template.New("layout").ParseFiles("templates/layout.html", "templates/article.html")),
+	"feed":    template.Must(template.ParseFiles("templates/feed.atom")),
 	"sitemap": template.Must(template.ParseFiles("templates/sitemap.xml")),
 }
 
@@ -30,6 +31,7 @@ func main() {
 
 	p := pat.New()
 	p.Get("/sitemap.xml", Sitemap)
+	p.Get("/feed.atom", Feed)
 	p.Get("/login", Login)
 	p.Get(config.WebHookURL, WebHook)
 	p.Post(config.WebHookURL, WebHook)
@@ -172,6 +174,21 @@ func Sitemap(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/xml; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	templates["sitemap"].ExecuteTemplate(w, "sitemap.xml", struct {
+		Host  string
+		Index []datastore.Article
+	}{
+		Host:  config.HostWithProtocol,
+		Index: index,
+	})
+}
+
+func Feed(w http.ResponseWriter, r *http.Request) {
+	index := datastore.LoadArticleIndex(config.DefaultUserEmail)
+
+	w.Header().Set("Content-Type", "text/xml; charset=utf-8")
+	w.Header().Set("Content-Type", "application/xml; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	templates["feed"].ExecuteTemplate(w, "feed.atom", struct {
 		Host  string
 		Index []datastore.Article
 	}{
