@@ -1,0 +1,11 @@
+{{ define "content" }}
+  {{range .Index}}
+    <div class="blog-post">
+      <h2 class="blog-post-title">{{.Title}}</h2>
+      <p class="blog-post-meta">{{.CreatedAt}} <a href="/{{.Permalink}}">permalink</a></p>
+      <p>
+      {{.Summary}}
+      </p>
+    </div>
+  {{end}}
+{{end}}

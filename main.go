@@ -19,6 +19,7 @@ import (
 var templates = map[string]*template.Template{
 	"index":   template.Must(template.New("layout").ParseFiles("templates/layout.html", "templates/index.html")),
 	"article": template.Must(template.New("layout").ParseFiles("templates/layout.html", "templates/article.html")),
+	"archive": template.Must(template.New("layout").ParseFiles("templates/layout.html", "templates/archive.html")),
 	"feed":    template.Must(template.ParseFiles("templates/feed.atom")),
 	"sitemap": template.Must(template.ParseFiles("templates/sitemap.xml")),
 }
@@ -33,6 +34,7 @@ func main() {
 	p.Get("/sitemap.xml", Sitemap)
 	p.Get("/feed.atom", Feed)
 	p.Get("/login", Login)
+	p.Get("/archive", Archive)
 	p.Get(config.WebHookURL, WebHook)
 	p.Post(config.WebHookURL, WebHook)
 	p.Get("/account", Account)
@@ -108,6 +110,17 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	}{
 		Articles: articles,
 		Index:    index,
+	})
+}
+
+func Archive(w http.ResponseWriter, r *http.Request) {
+	index := datastore.LoadArticleIndex(config.DefaultUserEmail)
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	templates["archive"].ExecuteTemplate(w, "layout", struct {
+		Index []datastore.Article
+	}{
+		Index: index,
 	})
 }
 
