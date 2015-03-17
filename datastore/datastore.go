@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/PuerkitoBio/goquery"
 	"github.com/boltdb/bolt"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/russross/blackfriday"
@@ -26,6 +27,7 @@ type Article struct {
 	CreatedAt string `json:"created-at"`
 	TimeStamp string `json:"timestamp"`
 	Permalink string `json:"permalink"`
+	Summary   string `json:"summary"`
 	dropbox.FileMetadata
 }
 
@@ -208,10 +210,24 @@ func ParseEntry(e dropbox.FileMetadata, c []byte) *Article {
 	article := extractEntryData(c)
 	unsafe := blackfriday.MarkdownCommon(fixImagePaths(c))
 	article.Content = string(bluemonday.UGCPolicy().SanitizeBytes(unsafe))
+	article.Summary = ExtractSummary(article.Content)
 	article.FileMetadata = e
 	article.sanitizeArticleMetadata()
 	article.ParseTimeStamp()
 	return article
+}
+
+// use first found paragraph to make summary
+func ExtractSummary(c string) string {
+	summary := ""
+	doc, err := goquery.NewDocumentFromReader(strings.NewReader(c))
+	if err != nil {
+		log.Fatal(err)
+	}
+	doc.Find("p:first-of-type").Each(func(i int, s *goquery.Selection) {
+		summary = s.Text()
+	})
+	return summary
 }
 
 func LoadArticleIndex(email string) []Article {

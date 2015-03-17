@@ -86,6 +86,7 @@ func Test_ParseArticle(t *testing.T) {
 	a.Equal(article.Title, "this is my first article")
 	a.Equal(article.Permalink, "this-is-my-first-article")
 	a.Equal(article.CreatedAt, "2015-10-10")
+	a.Equal(article.Summary, "this is a pragraph")
 	a.Equal(article.FileMetadata, fakeFileMetaData())
 	article.GenerateID("foo@bar.it")
 	a.Equal(article.ID, "foo@bar.it:article:/published/this_is_my-first article.md")
@@ -191,6 +192,7 @@ func Test_LoadArticleIndex(t *testing.T) {
 	a.Contains(index[0].Permalink, "a2")
 	a.Contains(index[0].ID, anotherArticle.ID)
 	a.Contains(index[0].Title, "t2")
+	a.Contains(index[0].Summary, "this is a pragraph")
 	a.Contains(index[0].CreatedAt, "2014-12-02")
 }
 
@@ -212,6 +214,8 @@ func fakeFileContent() []byte {
 
 # my first article
 
+this is a pragraph 
+
 ![arcangelo](../images/foo.jpg")
 
 	`
@@ -222,6 +226,10 @@ func fakeFileContentWithNoMetadata() []byte {
 	b := `
 
 # my first article
+
+
+this is a pragraph 
+
 	`
 	return []byte(b)
 }
