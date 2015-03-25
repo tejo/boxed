@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"text/template"
 
+	"github.com/GeertJohan/go.rice"
 	"github.com/codegangsta/negroni"
 	"github.com/gorilla/pat"
 	"github.com/gorilla/sessions"
@@ -43,6 +44,7 @@ func main() {
 	p.Get("/", Index)
 
 	n := negroni.Classic()
+	n.Use(negroni.NewStatic(rice.MustFindBox("static").HTTPBox()))
 	n.UseHandler(p)
 
 	log.Fatal(http.ListenAndServe(config.Port, n))
