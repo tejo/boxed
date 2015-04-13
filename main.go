@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"net/url"
-	"text/template"
 
 	"github.com/GeertJohan/go.rice"
 	"github.com/codegangsta/negroni"
@@ -17,14 +15,6 @@ import (
 	"github.com/tejo/boxed/dropbox"
 )
 
-var templates = map[string]*template.Template{
-	"index":   template.Must(template.New("layout").ParseFiles("templates/layout.html", "templates/index.html")),
-	"article": template.Must(template.New("layout").ParseFiles("templates/layout.html", "templates/article.html")),
-	"archive": template.Must(template.New("layout").ParseFiles("templates/layout.html", "templates/archive.html")),
-	"feed":    template.Must(template.ParseFiles("templates/feed.atom")),
-	"sitemap": template.Must(template.ParseFiles("templates/sitemap.xml")),
-}
-
 func main() {
 	datastore.Connect("blog.db")
 	defer datastore.Close()
@@ -32,16 +22,16 @@ func main() {
 	handleCommands()
 
 	p := pat.New()
-	p.Get("/sitemap.xml", Sitemap)
-	p.Get("/feed.atom", Feed)
-	p.Get("/login", Login)
-	p.Get("/archive", Archive)
-	p.Get(config.WebHookURL, WebHook)
-	p.Post(config.WebHookURL, WebHook)
-	p.Get("/account", Account)
-	p.Get("/{id}", ArticleHandler)
-	p.Get(config.CallbackURL, Callback)
-	p.Get("/", Index)
+	p.Get("/sitemap.xml", sitemap)
+	p.Get("/feed.atom", feed)
+	p.Get("/login", login)
+	p.Get("/archive", archive)
+	p.Get(config.WebHookURL, webHook)
+	p.Post(config.WebHookURL, webHook)
+	p.Get("/account", account)
+	p.Get("/{id}", articleHandler)
+	p.Get(config.CallbackURL, callback)
+	p.Get("/", index)
 
 	n := negroni.Classic()
 	n.Use(negroni.NewStatic(rice.MustFindBox("static").HTTPBox()))
@@ -50,7 +40,8 @@ func main() {
 	log.Fatal(http.ListenAndServe(config.Port, n))
 }
 
-func WebHook(w http.ResponseWriter, r *http.Request) {
+//dropbox endpoint, must be configured on db site
+func webHook(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		fmt.Fprintf(w, "%s", r.URL.Query().Get("challenge"))
 		return
@@ -69,7 +60,7 @@ func WebHook(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func ArticleHandler(w http.ResponseWriter, r *http.Request) {
+func articleHandler(w http.ResponseWriter, r *http.Request) {
 	index := datastore.LoadArticleIndex(config.DefaultUserEmail)
 	var article *datastore.Article
 	for _, v := range index {
@@ -90,7 +81,7 @@ func ArticleHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func Index(w http.ResponseWriter, r *http.Request) {
+func index(w http.ResponseWriter, r *http.Request) {
 	index := datastore.LoadArticleIndex(config.DefaultUserEmail)
 	var articles []*datastore.Article
 	var i []datastore.Article
@@ -115,7 +106,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func Archive(w http.ResponseWriter, r *http.Request) {
+func archive(w http.ResponseWriter, r *http.Request) {
 	index := datastore.LoadArticleIndex(config.DefaultUserEmail)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
@@ -126,69 +117,13 @@ func Archive(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func Account(w http.ResponseWriter, r *http.Request) {
-	withSession(w, r, func(session *sessions.Session) {
-		var AccessToken dropbox.AccessToken
-
-		if email := session.Values["email"]; email == nil {
-			fmt.Fprint(w, "no email found")
-			return
-		}
-		email := session.Values["email"].(string)
-		AccessToken, _ = datastore.LoadUserToken(email)
-
-		dbc := dropbox.NewClient(AccessToken, config.AppToken)
-		info, err := dbc.GetAccountInfo()
-		if err != nil {
-			// access token is not valid anymore
-			// reset session
-			session.Values["email"] = ""
-			session.Save(r, w)
-			fmt.Fprint(w, "access token not valid")
-			return
-		}
-		fmt.Fprintf(w, "info = %+v\n", info)
-	})
-}
-
-func Login(w http.ResponseWriter, r *http.Request) {
-	withSession(w, r, func(session *sessions.Session) {
-		RequestToken, _ := dropbox.StartAuth(config.AppToken)
-		session.Values["RequestToken"] = RequestToken
-		url, _ := url.Parse(config.HostWithProtocol + config.CallbackURL)
-		authURL := dropbox.GetAuthorizeURL(RequestToken, url)
-		session.Save(r, w)
-		http.Redirect(w, r, authURL.String(), 302)
-	})
-}
-
-// saves the user id in session, save used data and access token in
-// db, creates the default folders
-func Callback(w http.ResponseWriter, r *http.Request) {
-	withSession(w, r, func(session *sessions.Session) {
-		RequestToken := session.Values["RequestToken"].(dropbox.RequestToken)
-		AccessToken, _ := dropbox.FinishAuth(config.AppToken, RequestToken)
-		dbc := dropbox.NewClient(AccessToken, config.AppToken)
-		info, err := dbc.GetAccountInfo()
-		if err != nil {
-			log.Println(err)
-		}
-		datastore.SaveUserData(info, AccessToken)
-		session.Values["email"] = info.Email
-		session.Save(r, w)
-		dbc.CreateDir("drafts")
-		dbc.CreateDir("published")
-		http.Redirect(w, r, "/", 302)
-	})
-}
-
-func Sitemap(w http.ResponseWriter, r *http.Request) {
+func sitemap(w http.ResponseWriter, r *http.Request) {
 	index := datastore.LoadArticleIndex(config.DefaultUserEmail)
 
 	w.Header().Set("Content-Type", "text/xml; charset=utf-8")
 	w.Header().Set("Content-Type", "application/xml; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	templates["sitemap"].ExecuteTemplate(w, "sitemap.xml", struct {
+	templates["sitemap.xml"].ExecuteTemplate(w, "T", struct {
 		Host  string
 		Index []datastore.Article
 	}{
@@ -197,19 +132,21 @@ func Sitemap(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func Feed(w http.ResponseWriter, r *http.Request) {
+func feed(w http.ResponseWriter, r *http.Request) {
 	index := datastore.LoadArticleIndex(config.DefaultUserEmail)
 
 	w.Header().Set("Content-Type", "text/xml; charset=utf-8")
 	w.Header().Set("Content-Type", "application/xml; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	templates["feed"].ExecuteTemplate(w, "feed.atom", struct {
+	err := templates["feed.atom"].ExecuteTemplate(w, "T", struct {
 		Host  string
 		Index []datastore.Article
 	}{
 		Host:  config.HostWithProtocol,
 		Index: index,
 	})
+
+	log.Println(err)
 }
 
 func withSession(w http.ResponseWriter, r *http.Request, fn func(*sessions.Session)) {

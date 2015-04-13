@@ -1,13 +1,13 @@
-<feed xmlns="http://www.w3.org/2005/Atom">
+{{define "T"}}<feed xmlns="http://www.w3.org/2005/Atom">
   <title>Matteo Parmi blog feed</title>
-  <id>tag:{{.Host}},2015:{.Host}}</id>
-  <link rel="self" href="{.Host}}/feed.atom"></link>
+  <id>tag:{{.Host}},2015:{{.Host}}</id>
+  <link rel="self" href="{{.Host}}/feed.atom"></link>
   <updated>2014-02-08T11:00:00+00:00</updated>
 {{$host := .Host}}
 {{range .Index}}
   <entry>
     <title>{{.Title}}</title>
-    <id>tag:{{.Host}},2015:{{$host}}/{{.Permalink}}</id>
+    <id>tag:{{$host}},2015:{{$host}}/{{.Permalink}}</id>
     <link rel="alternate" href="{{$host}}/{{.Permalink}}"></link>
     <published>2014-02-08T11:00:00+00:00</published>
     <updated>2014-02-08T11:00:00+00:00</updated>
@@ -15,8 +15,9 @@
       <name>Matteo Parmi</name>
     </author>
     <content type="html" mode="escaped">
-      <![CDATA[{{.Content}}]]>
+      <![CDATA[{{.Summary}}]]>
     </content>
   </entry>
 {{end}}
 </feed>
+{{end}}
