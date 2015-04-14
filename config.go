@@ -13,6 +13,7 @@ type Config struct {
 	CallbackURL      string
 	WebHookURL       string
 	Port             string
+	SiteName         string
 	AppToken         dropbox.AppToken
 }
 
@@ -22,6 +23,7 @@ func init() {
 	// initialize some config var
 	config = &Config{}
 
+	config.SiteName = os.Getenv("SITE_NAME")
 	config.DefaultUserEmail = os.Getenv("DEFAULT_USER_EMAIL")
 	config.AppToken = dropbox.AppToken{
 		Key:    os.Getenv("KEY"),

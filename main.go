@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/gob"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -10,7 +9,6 @@ import (
 	"github.com/GeertJohan/go.rice"
 	"github.com/codegangsta/negroni"
 	"github.com/gorilla/pat"
-	"github.com/gorilla/sessions"
 	"github.com/tejo/boxed/datastore"
 	"github.com/tejo/boxed/dropbox"
 )
@@ -72,13 +70,12 @@ func articleHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	templates["article"].ExecuteTemplate(w, "layout", struct {
-		Article *datastore.Article
-		Index   []datastore.Article
-	}{
-		Article: article,
-		Index:   index,
-	})
+	templates["article"].ExecuteTemplate(w, "layout",
+		map[string]interface{}{
+			"SiteName": config.SiteName,
+			"Article":  article,
+			"Index":    index,
+		})
 }
 
 func index(w http.ResponseWriter, r *http.Request) {
@@ -97,24 +94,23 @@ func index(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	templates["index"].ExecuteTemplate(w, "layout", struct {
-		Articles []*datastore.Article
-		Index    []datastore.Article
-	}{
-		Articles: articles,
-		Index:    index,
-	})
+	templates["index"].ExecuteTemplate(w, "layout",
+		map[string]interface{}{
+			"SiteName": config.SiteName,
+			"Articles": articles,
+			"Index":    index,
+		})
 }
 
 func archive(w http.ResponseWriter, r *http.Request) {
 	index := datastore.LoadArticleIndex(config.DefaultUserEmail)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	templates["archive"].ExecuteTemplate(w, "layout", struct {
-		Index []datastore.Article
-	}{
-		Index: index,
-	})
+	templates["archive"].ExecuteTemplate(w, "layout",
+		map[string]interface{}{
+			"SiteName": config.SiteName,
+			"Index":    index,
+		})
 }
 
 func sitemap(w http.ResponseWriter, r *http.Request) {
@@ -123,13 +119,11 @@ func sitemap(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/xml; charset=utf-8")
 	w.Header().Set("Content-Type", "application/xml; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	templates["sitemap.xml"].ExecuteTemplate(w, "T", struct {
-		Host  string
-		Index []datastore.Article
-	}{
-		Host:  config.HostWithProtocol,
-		Index: index,
-	})
+	templates["sitemap.xml"].ExecuteTemplate(w, "T",
+		map[string]interface{}{
+			"Host":  config.HostWithProtocol,
+			"Index": index,
+		})
 }
 
 func feed(w http.ResponseWriter, r *http.Request) {
@@ -138,25 +132,9 @@ func feed(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/xml; charset=utf-8")
 	w.Header().Set("Content-Type", "application/xml; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
-	err := templates["feed.atom"].ExecuteTemplate(w, "T", struct {
-		Host  string
-		Index []datastore.Article
-	}{
-		Host:  config.HostWithProtocol,
-		Index: index,
-	})
-
-	log.Println(err)
-}
-
-func withSession(w http.ResponseWriter, r *http.Request, fn func(*sessions.Session)) {
-	gob.Register(dropbox.RequestToken{})
-	store := sessions.NewCookieStore([]byte("182hetsgeih8765$aasdhj"))
-	store.Options = &sessions.Options{
-		Path:     "/",
-		MaxAge:   86400 * 30 * 12,
-		HttpOnly: true,
-	}
-	session, _ := store.Get(r, "boxedsession")
-	fn(session)
+	templates["feed.atom"].ExecuteTemplate(w, "T",
+		map[string]interface{}{
+			"Host":  config.HostWithProtocol,
+			"Index": index,
+		})
 }

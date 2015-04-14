@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/gob"
 	"fmt"
 	"log"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 	"github.com/tejo/boxed/dropbox"
 )
 
+// handlers in this files are not actively in use, eventually will be removed
 func account(w http.ResponseWriter, r *http.Request) {
 	withSession(w, r, func(session *sessions.Session) {
 		var AccessToken dropbox.AccessToken
@@ -65,4 +67,16 @@ func callback(w http.ResponseWriter, r *http.Request) {
 		dbc.CreateDir("published")
 		http.Redirect(w, r, "/", 302)
 	})
+}
+
+func withSession(w http.ResponseWriter, r *http.Request, fn func(*sessions.Session)) {
+	gob.Register(dropbox.RequestToken{})
+	store := sessions.NewCookieStore([]byte("182hetsgeih8765$aasdhj"))
+	store.Options = &sessions.Options{
+		Path:     "/",
+		MaxAge:   86400 * 30 * 12,
+		HttpOnly: true,
+	}
+	session, _ := store.Get(r, "boxedsession")
+	fn(session)
 }
