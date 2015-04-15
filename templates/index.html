@@ -1,9 +1,18 @@
 {{ define "content" }}
-  {{range .Articles}}
-    <div class="blog-post">
-      <h2 class="blog-post-title">{{.Title}}</h2>
-      <p class="blog-post-meta">{{.CreatedAt}} <a href="/{{.Permalink}}">permalink</a></p>
+<div class="content container">
+  <div class="posts">
+    {{range .Articles}}
+    <div class="post">
+      <h1 class="post-title">
+        <a href="/{{.Permalink}}">
+          {{.Title}}
+        </a>
+      </h1>
+      <span class="post-date">{{.CreatedAt}}</span>
       {{.Content}}
     </div>
-  {{end}}
+    {{end}}
+  </div>
+</div>
 {{end}}
+

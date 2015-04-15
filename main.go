@@ -134,7 +134,8 @@ func feed(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	templates["feed.atom"].ExecuteTemplate(w, "T",
 		map[string]interface{}{
-			"Host":  config.HostWithProtocol,
-			"Index": index,
+			"SiteName": config.SiteName,
+			"Host":     config.HostWithProtocol,
+			"Index":    index,
 		})
 }

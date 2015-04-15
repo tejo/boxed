@@ -1,5 +1,5 @@
 {{define "T"}}<feed xmlns="http://www.w3.org/2005/Atom">
-  <title>Matteo Parmi blog feed</title>
+  <title>{{.SiteName}}</title>
   <id>tag:{{.Host}},2015:{{.Host}}</id>
   <link rel="self" href="{{.Host}}/feed.atom"></link>
   <updated>2014-02-08T11:00:00+00:00</updated>
