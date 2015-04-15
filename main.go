@@ -29,7 +29,7 @@ func main() {
 	p.Get("/account", account)
 	p.Get("/{id}", articleHandler)
 	p.Get(config.CallbackURL, callback)
-	p.Get("/", index)
+	p.Get("/", home)
 
 	n := negroni.Classic()
 	n.Use(negroni.NewStatic(rice.MustFindBox("static").HTTPBox()))
@@ -38,7 +38,9 @@ func main() {
 	log.Fatal(http.ListenAndServe(config.Port, n))
 }
 
-//dropbox endpoint, must be configured on db site
+// dropbox endpoint, must be configured on db site
+// when a file is updated in the db folder, this
+// endpoint will be hit by db
 func webHook(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		fmt.Fprintf(w, "%s", r.URL.Query().Get("challenge"))
@@ -59,9 +61,8 @@ func webHook(w http.ResponseWriter, r *http.Request) {
 }
 
 func articleHandler(w http.ResponseWriter, r *http.Request) {
-	index := datastore.LoadArticleIndex(config.DefaultUserEmail)
 	var article *datastore.Article
-	for _, v := range index {
+	for _, v := range datastore.LoadArticleIndex(config.DefaultUserEmail) {
 		if v.Permalink == r.URL.Query().Get(":id") {
 			article, _ = datastore.LoadArticle(v.ID)
 			continue
@@ -74,47 +75,32 @@ func articleHandler(w http.ResponseWriter, r *http.Request) {
 		map[string]interface{}{
 			"SiteName": config.SiteName,
 			"Article":  article,
-			"Index":    index,
 		})
 }
 
-func index(w http.ResponseWriter, r *http.Request) {
-	index := datastore.LoadArticleIndex(config.DefaultUserEmail)
-	var articles []*datastore.Article
-	var i []datastore.Article
-	if len(index) > 3 {
-		i = index[:3]
-	} else {
-		i = index
-	}
-	for _, v := range i {
-		a, _ := datastore.LoadArticle(v.ID)
-		articles = append(articles, a)
-	}
-
+func home(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	templates["index"].ExecuteTemplate(w, "layout",
 		map[string]interface{}{
 			"SiteName": config.SiteName,
-			"Articles": articles,
-			"Index":    index,
+			"Articles": getLatestArticles(),
 		})
 }
 
 func archive(w http.ResponseWriter, r *http.Request) {
-	index := datastore.LoadArticleIndex(config.DefaultUserEmail)
+	articles := datastore.LoadArticleIndex(config.DefaultUserEmail)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	templates["archive"].ExecuteTemplate(w, "layout",
 		map[string]interface{}{
 			"SiteName": config.SiteName,
-			"Index":    index,
+			"Index":    articles,
 		})
 }
 
 func sitemap(w http.ResponseWriter, r *http.Request) {
-	index := datastore.LoadArticleIndex(config.DefaultUserEmail)
+	articles := datastore.LoadArticleIndex(config.DefaultUserEmail)
 
 	w.Header().Set("Content-Type", "text/xml; charset=utf-8")
 	w.Header().Set("Content-Type", "application/xml; charset=utf-8")
@@ -122,12 +108,12 @@ func sitemap(w http.ResponseWriter, r *http.Request) {
 	templates["sitemap.xml"].ExecuteTemplate(w, "T",
 		map[string]interface{}{
 			"Host":  config.HostWithProtocol,
-			"Index": index,
+			"Index": articles,
 		})
 }
 
 func feed(w http.ResponseWriter, r *http.Request) {
-	index := datastore.LoadArticleIndex(config.DefaultUserEmail)
+	articles := datastore.LoadArticleIndex(config.DefaultUserEmail)
 
 	w.Header().Set("Content-Type", "text/xml; charset=utf-8")
 	w.Header().Set("Content-Type", "application/xml; charset=utf-8")
@@ -136,6 +122,22 @@ func feed(w http.ResponseWriter, r *http.Request) {
 		map[string]interface{}{
 			"SiteName": config.SiteName,
 			"Host":     config.HostWithProtocol,
-			"Index":    index,
+			"Index":    articles,
 		})
+}
+
+func getLatestArticles() []*datastore.Article {
+	articleIndex := datastore.LoadArticleIndex(config.DefaultUserEmail)
+	var articles []*datastore.Article
+	var firstThreeArticles []datastore.Article
+	if len(articleIndex) > 3 {
+		firstThreeArticles = articleIndex[:3]
+	} else {
+		firstThreeArticles = articleIndex
+	}
+	for _, v := range firstThreeArticles {
+		a, _ := datastore.LoadArticle(v.ID)
+		articles = append(articles, a)
+	}
+	return articles
 }
