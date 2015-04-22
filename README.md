@@ -3,20 +3,20 @@
 A Dropbox based blog engine
 
 This project started as a blog as a service platform, but it quickly ended up to be my
-personal blog. It does its job, it's far away to be pretty and polished but you may find it
+personal blog. It does its job, it's far away to be pretty and polished but you maybe find it
 useful. It allows you to manage your blog in markdown format from your dropbox
 folder.
 
-You can run it on your machine witout installing anything, It's all bundled in the executable (html and css too), and it saves the data in a [bolt](https://github.com/boltdb/bolt) database.
+You can run it on your machine without installing anything, It's all bundled in the executable (html and css too), and it saves the data in a [bolt](https://github.com/boltdb/bolt) database.
 
 ### Try it
 
-If you want to try it wihtout compile it by yourself you can grab the executable
+If you want to try it without compile it by yourself you can grab the executable
 from the [aplha releases](https://github.com/tejo/boxed/releases/tag/v0.1-alpha)
 page
 
-You have to crate a [dropbox app](https://www.dropbox.com/developers/apps) and
-choose the following:
+You have to create a [dropbox app](https://www.dropbox.com/developers/apps) and
+select the following:
 
 
 - Dropbox API app
@@ -25,7 +25,7 @@ choose the following:
 - webhook url: http://yoursitehost.com/webhook
 
 
-then you need to modify the ```.env.sample``` file accordingly and in your cli:
+then you need to modify the ```.env.sample``` file accordingly and in your terminal:
 
 ```
 # set env variables
@@ -44,7 +44,7 @@ source .env.sample
 ```
 
 
-if you have correctly set the webhook you don't need to refresh, it will be published when the post has been synchronized to your dropbox.
+if you have correctly set the webhook path you don't need to refresh, it will be published when the article will been synchronized to your dropbox.
 
 
 ### Articles metadata
@@ -69,7 +69,7 @@ Boxed supports images out of the box, you have to put them in the ```images``` f
 
 ### Template customization
 
-Boxed comes with the excellent default [hyde](http://hyde.getpoole.com/) template. If you want to change it, like i did it for my [blog](http://boxed.parmi.it/), you have to be able to compile go code, then you have to change the template/css files and then use [go rice](https://github.com/GeertJohan/go.rice) to bundle them in the executable. 
+Boxed comes with the excellent default [hyde](http://hyde.getpoole.com/) template. If you want to change it, like i did it for my [blog](http://boxed.parmi.it/), you have to be able to compile go code, then you have to change the template/css files and then use [go rice](https://github.com/GeertJohan/go.rice) to bundle them back in the executable. 
 
 ### Tests
 
