@@ -47,6 +47,7 @@ func handleCommands() {
 			datastore.SaveUserData(info, accessToken)
 			dbc.CreateDir("drafts")
 			dbc.CreateDir("published")
+			dbc.CreateDir("images")
 		}
 		os.Exit(1)
 	}
