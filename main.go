@@ -75,6 +75,7 @@ func articleHandler(w http.ResponseWriter, r *http.Request) {
 		map[string]interface{}{
 			"SiteName": config.SiteName,
 			"Article":  article,
+			"CssClass": "article",
 		})
 }
 
@@ -85,6 +86,7 @@ func home(w http.ResponseWriter, r *http.Request) {
 		map[string]interface{}{
 			"SiteName": config.SiteName,
 			"Articles": getLatestArticles(),
+			"CssClass": "home",
 		})
 }
 
@@ -96,6 +98,7 @@ func archive(w http.ResponseWriter, r *http.Request) {
 		map[string]interface{}{
 			"SiteName": config.SiteName,
 			"Index":    articles,
+			"CssClass": "archive",
 		})
 }
 
