@@ -34,7 +34,7 @@ source .env.sample
 # link local app to dropbox (follow the instructions)
 ./boxed --oauth
 
-# put a markdown file in the posts folder in your dropbox directory and publish it with:
+# put a markdown file in the published folder in your dropbox directory and publish it with:
 ./boxed --refresh
 
 #run the server with
