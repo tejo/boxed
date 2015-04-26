@@ -14,7 +14,7 @@
 		},
 		{
 			"ImportPath": "github.com/GeertJohan/go.rice",
-			"Rev": "b4a18af231435326dd7995d2dd0f3ee31b81f212"
+			"Rev": "42fe5e1e4e358b413e3e1a7b2243ec8599209107"
 		},
 		{
 			"ImportPath": "github.com/PuerkitoBio/goquery",
