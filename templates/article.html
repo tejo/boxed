@@ -1,18 +1,13 @@
 {{ define "content" }}
-<div class="content container">
-  <div class="posts">
-    {{with .Article}}
-    <div class="post">
-      <h1 class="post-title">
-        <a href="/{{.Permalink}}">
-          {{.Title}}
-        </a>
-      </h1>
-      <span class="post-date">{{.CreatedAt}}</span>
-      {{.Content}}
-    </div>
-    {{end}}
-  </div>
-</div>
+<section class="content js-post-load">
+  {{with .Article}}
+  <article class="post tile">
+    <header class="post__header">
+      <h1 class="post__title"><a href="/{{.Permalink}}">{{.Title}}</a></h1>
+      <span class="post__date">{{.CreatedAt}}</span>
+    </header>
+    {{.Content}}
+  </article>
+  {{end}}
+</section>
 {{end}}
-

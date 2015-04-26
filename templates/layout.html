@@ -1,55 +1,123 @@
 {{ define "layout" }}
-<!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+<!doctype html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie10 lt-ie9 lt-ie8 lt-ie7" lang="en"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie10 lt-ie9 lt-ie8" lang="en"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie10 lt-ie9" lang="en"> <![endif]-->
+<!--[if IE 9]>         <html class="no-js lt-ie10 " lang="en"> <![endif]-->
+<!--[if gt IE 9]><!--> <html class="no-js" lang="en"> <!--<![endif]-->
+<head>
+  <!-- Title block allowing child pages to override -->
+  <title>{{.SiteName}}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <link rel="shortcut icon" type="image/ico" href="favicon.ico" />
+  <!-- Styles -->
+  <script src="assets/js/vendor/modernizr.min.js"></script>
+  <link href="assets/css/application.min.css" rel="stylesheet" type="text/css" media="all"/>
 
-  <head>
-  <link href="http://gmpg.org/xfn/11" rel="profile">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta http-equiv="content-type" content="text/html; charset=utf-8">
 
-  <!-- Enable responsiveness on mobile devices-->
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
-
-    <title>{{.SiteName}}</title>
-
-  <!-- CSS -->
-  <link rel="stylesheet" href="/css/poole.css">
-  <link rel="stylesheet" href="/css/syntax.css">
-  <link rel="stylesheet" href="/css/hyde.css">
   <link rel="stylesheet" href="/css/default.min.css">
-  <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=PT+Sans:400,400italic,700%7CAbril+Fatface">
-
-
-  <!-- RSS -->
   <link rel="alternate" type="application/rss+xml" title="RSS" href="atom.feed">
-  <script src="/js/highlight.min.js"></script>
-  <script>hljs.initHighlightingOnLoad();</script>
 
 </head>
+<body class="{{.CssClass}}">
+  <header class="header">
+    <h1 class="logo">
+      <span class="logo__name">matteo <br> Parmi</span>
+      <span class="logo__subtitle">Codewriter</span>
+    </h1>
+  </header>
 
 
-<body class="theme-base-09 {{.CssClass}}">
-
-    <div class="sidebar">
-  <div class="container sidebar-sticky">
-    <div class="sidebar-about">
-      <h1>
-        <a href="/">
-    {{.SiteName}}
-        </a>
+  <div class="auxBody">
+    <div class="wrapper js-mobileFixNavItem">
+      <h1 class="logo_mobile">
+        <span class="logo__name">matteo <br> Parmi</span>
+        <span class="logo__subtitle">Codewriter</span>
       </h1>
+
+      <div class="main">
+        <nav class="navbar">
+          <ul class="mainNavbar">
+            <li class="mainNavbar__item">
+              <a class="mainNavbar__link" href="/archive">
+                <span class="mainNavbar__label">all articles</span>
+                <svg class="mainNavbar__icon" version="1.1"xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                                                                                                                                                 viewBox="0 0 178 148" enable-background="new 0 0 178 148" xml:space="preserve">
+                  <g>
+                  <rect y="128" width="178" height="20"/>
+                  <rect y="64" width="178" height="20"/>
+                  <rect width="178" height="20"/>
+                  </g>
+                </svg>
+              </a>
+
+            </li>
+            <li class="mainNavbar__item">
+              <a class="mainNavbar__link" href="mailto:matteo[at]parmi.it">
+                <span class="mainNavbar__label">contacts</span>
+                <svg class="mainNavbar__icon" version="1.1" id="Livello_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                                                                                                                                                                 viewBox="0 0 197.7 148.3" enable-background="new 0 0 197.7 148.3" xml:space="preserve">
+                  <g>
+                  <path d="M0,0v148.3h197.7V0H0z M146.3,77l-12.5,10.7l37.8,44.1H26.1l37.8-44.1L51.4,77l-34.9,40.8V25.6L98.9,93
+                  l82.4-67.4v92.2L146.3,77z M31.3,16.5h135.1L98.9,71.7L31.3,16.5z"/>
+                  </g>
+                </svg>
+              </a>
+            </li>
+          </ul>
+          <ul class="socialNavbar">
+            <li class="socialNavbar__item">
+              <a class="socialNavbar__link" href="http://it.linkedin.com/in/mparmi">
+                <svg class="socialNavbar__icon" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                                                                                                                                                    viewBox="337.3 252 65.2 65.2" enable-background="new 337.3 252 65.2 65.2" xml:space="preserve">
+                  <path d="M401.1,253.4c0.9,0.9,1.4,2,1.4,3.3v56c0,1.3-0.5,2.4-1.4,3.3c-0.9,0.9-2.1,1.3-3.4,1.3h-55.6
+                  c-1.3,0-2.4-0.4-3.4-1.3c-0.9-0.9-1.4-2-1.4-3.3v-56c0-1.3,0.5-2.4,1.4-3.3c0.9-0.9,2.1-1.3,3.4-1.3h55.6
+                  C399,252,400.1,252.5,401.1,253.4z M355.7,270.6c1.1-1.1,1.6-2.5,1.6-4c0-1.5-0.5-2.9-1.6-4s-2.4-1.7-3.9-1.7c-1.5,0-2.9,0.6-4,1.7
+                  s-1.7,2.5-1.7,4c0,1.7,0.5,3,1.6,4.1c1.1,1.1,2.4,1.6,4.1,1.6C353.4,272.2,354.7,271.7,355.7,270.6z M356.6,276.5h-9.7v31.2h9.7
+                  V276.5z M392.9,290.5c0-4.7-0.8-8.4-2.4-10.9c-1.6-2.5-4.7-3.8-9.3-3.8c-4.4,0-7.4,1.7-9,5H372v-4.3h-9.4v31.2h9.7v-15.4
+                  c0-5.3,1.9-8,5.8-8c1.5,0,2.7,0.5,3.5,1.5c0.8,1,1.2,1.9,1.3,2.8c0.1,0.9,0.2,2.2,0.2,3.8v15.2h9.7V290.5z"/>
+                </svg>
+              </a></li>
+              <li class="socialNavbar__item">
+                <a class="socialNavbar__link" href="https://github.com/tejo" >
+                  <svg class="socialNavbar__icon" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="425.2 250.1 70.9 69" enable-background="new 425.2 250.1 70.9 69" xml:space="preserve"> <path d="M496,285.5c0,7.7-2.2,14.6-6.7,20.7c-4.5,6.1-10.3,10.4-17.5,12.8c-1.5,0.4-2.3-0.2-2.3-1.6v-9.7
+                    c0-3-0.8-5.1-2.5-6.6c4.8-0.6,8.7-2.1,11.7-4.6s4.4-6.8,4.4-12.9c0-3.7-1.2-6.8-3.5-9.4c1.1-2.8,0.9-6-0.4-9.4h-0.9
+                    c-0.7-0.1-1.9,0.1-3.5,0.7s-3.4,1.6-5.4,3c-2.6-0.8-5.6-1.2-8.9-1.2s-6.3,0.4-8.9,1.2c-4.5-3.1-7.7-4.3-9.7-3.7
+                    c-1.3,3.4-1.4,6.6-0.4,9.4c-2.4,2.6-3.5,5.7-3.5,9.4c0,6.1,1.5,10.5,4.4,12.9s6.9,4,11.7,4.6c-1.2,0.9-1.9,2.5-2.3,4.8
+                    c-4.5,2-7.9,1-10.3-3l-0.5-0.9c-0.5-0.6-1.2-1.2-2-1.8s-1.9-0.9-2.9-0.9c-1.9,0-1.9,0.7-0.2,2.1l0.5,0.4c0.5,0.2,1,0.8,1.7,1.7
+                    c0.6,0.9,1.2,1.9,1.7,3.1l0.9,1.8c0.5,1.1,1.7,2,3.7,2.7s4.4,0.9,7.3,0.3c0,1.2,0,2.5,0.1,3.8s0.1,2.1,0.1,2.2
+                    c0,1.4-0.8,1.9-2.5,1.6c-7.1-2.4-12.9-6.6-17.5-12.8c-4.5-6.1-6.8-13.1-6.8-20.7c0-9.8,3.5-18.2,10.5-25.1s15.3-10.4,25-10.4
+                    c9.7,0,18,3.5,25,10.4S496,275.7,496,285.5z"/>
+                  </svg>
+
+                </a>
+              </li>
+              <li class="socialNavbar__item">
+                <a class="socialNavbar__link" href="https://twitter.com/parmi">
+                  <svg class="socialNavbar__icon" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="516.4 256.3 69.8 56.7" enable-background="new 516.4 256.3 69.8 56.7" xml:space="preserve">
+                    <path d="M579.1,270.5v1.8c0,10.4-3.7,19.8-11.1,28.2c-7.4,8.4-17.3,12.6-29.7,12.6c-8,0-15.4-2.1-22-6.4
+                    c0.7,0.1,1.8,0.2,3.4,0.2c6.6,0,12.6-2.1,17.9-6.2c-3.2,0-6-0.9-8.4-2.8c-2.4-1.9-4.1-4.3-5-7.1c1.2,0.2,2.1,0.4,2.7,0.4
+                    c1.4,0,2.7-0.2,3.9-0.5c-3.3-0.7-6.1-2.4-8.2-5c-2.2-2.6-3.3-5.6-3.3-9v-0.4c1.8,1.1,3.9,1.7,6.4,1.9c-4.3-3.1-6.4-7.1-6.4-12
+                    c0-2.5,0.6-4.8,1.9-7.1c7.7,9.3,17.5,14.3,29.6,14.9c-0.2-1.4-0.4-2.5-0.4-3.2c0-4,1.4-7.4,4.2-10.2s6.2-4.2,10.2-4.2
+                    c4,0,7.5,1.5,10.5,4.4c3.2-0.5,6.2-1.6,9-3.4c-1.1,3.3-3.1,5.9-6.2,7.8c2.5-0.1,5.2-0.8,8.2-2.1C584.2,266,581.9,268.5,579.1,270.5z
+                    "/>
+                  </svg>
+                </a>
+              </li>
+          </ul>
+        </nav>
+
+        {{ template "content" . }}
+
+      </div>
+      <footer class="footer">
+      </footer>
     </div>
-
-    <nav class="sidebar-nav">
-      <a class="sidebar-nav-item active" href="/">Home</a>
-      <a class="sidebar-nav-item" href="/archive">Archive</a>
-    </nav>
-
   </div>
-</div>
-
-          {{ template "content" . }}
-  </body>
+  <script src="assets/js/vendor/jquery-1.11.0.min.js"></script>
+  <script src="assets/js/app.min.js"></script>
+  <script src="/assets/js/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+</body>
 </html>
-
 {{end}}
