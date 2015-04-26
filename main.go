@@ -18,6 +18,7 @@ func main() {
 	defer datastore.Close()
 
 	handleCommands()
+	loadTemplates()
 
 	p := pat.New()
 	p.Get("/sitemap.xml", sitemap)

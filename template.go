@@ -9,11 +9,8 @@ import (
 
 var templates = map[string]*template.Template{}
 
-func init() {
-	templateBox, err := rice.FindBox("templates")
-	if err != nil {
-		log.Fatal(err)
-	}
+func loadTemplates() {
+	templateBox := rice.MustFindBox("templates")
 	layout, err := templateBox.String("layout.html")
 	if err != nil {
 		log.Fatal(err)
