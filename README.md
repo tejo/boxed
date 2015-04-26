@@ -7,7 +7,7 @@ This project started as a blog as a service platform, but it quickly ended up to
 useful. It allows you to manage your blog in markdown format from your dropbox
 folder.
 
-You can run it on your machine without installing anything, It's all bundled in the executable (html and css too), and it saves the data in a [bolt](https://github.com/boltdb/bolt) database.
+You can run it on your machine without installing anything, It's all bundled in the executable (html and css too), and it saves the data in a [bolt](https://github.com/boltdb/bolt) database. It's performance wise too, my personal blog is served by a raspberry pi behind my crappy DSL router.
 
 ### Try it
 
