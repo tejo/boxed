@@ -3,7 +3,7 @@
 A Dropbox based blog engine
 
 This project started as a blog as a service platform, but it quickly ended up to be my
-[personal blog](http://boxed.parmi.it). It does its job, it's far away to be pretty and polished but you maybe find it
+[personal blog](http://blog.parmi.it/). It does its job, it's far away to be pretty and polished but you maybe find it
 useful. It allows you to manage your blog in markdown format from your dropbox
 folder.
 
