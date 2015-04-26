@@ -58,9 +58,7 @@ Boxed will try its best to figure out the publication date and title from the ma
 		"title": "A brand new blog"
 }-->
 
-``` 
-
-(note: the space ```< !--{```  in the html comment is left intentionally otherwise will be escaped out, the right one is ```<!--{``` )
+```
 
 ### Images
 
