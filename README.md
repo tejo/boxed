@@ -52,7 +52,7 @@ if you have correctly set the webhook path you don't need to refresh, it will be
 Boxed will try its best to figure out the publication date and title from the markdown article. If this is not enough for you, you can specify some metadata with a markdown/json comment like this:
 
 ```
-< !--{
+<!--{
 		"created-at": "2013-11-11",
 		"permalink": "a-brand-new-blog",
 		"title": "A brand new blog"
