@@ -62,7 +62,7 @@ Boxed will try its best to figure out the publication date and title from the ma
 
 ### Images
 
-Boxed supports images out of the box, you have to put them in the ```images``` folder, and then reference them like: ```![cool image](../images/image.jpeg")```
+Boxed supports images out of the box, you have to put them in the ```images``` folder, and then reference them like: ```![cool image](../images/image.jpeg "Cool image")```
 
 
 ### Template customization
