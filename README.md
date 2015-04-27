@@ -76,3 +76,11 @@ You can run boxed tests with:
 ```
 go test ./...
 ```
+
+### Licence
+This project is licensed under a Simplified BSD license. Please read the [LICENSE file](https://github.com/tejo/boxed/blob/master/LICENSE).
+
+### TODO & Development
+- blog live updates with SSE or websockets
+- adds tests for the http flow
+- allow articles to be published in the future
