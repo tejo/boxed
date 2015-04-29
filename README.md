@@ -69,6 +69,8 @@ Boxed supports images out of the box, you have to put them in the ```images``` f
 
 Boxed comes with the excellent default [hyde](http://hyde.getpoole.com/) template. If you want to change it, like i did it for my [blog](http://boxed.parmi.it/), you have to be able to compile go code, then you have to change the template/css files and then use [go rice](https://github.com/GeertJohan/go.rice) to bundle them back in the executable. 
 
+Future versions will allow to customize the look and feel directly from the dropbox folder.
+
 ### Tests
 
 You can run boxed tests with:
@@ -81,6 +83,7 @@ go test ./...
 This project is licensed under a Simplified BSD license. Please read the [LICENSE file](https://github.com/tejo/boxed/blob/master/LICENSE).
 
 ### TODO & Development
-- blog live updates with SSE or websockets
+- allowing look and feel customization from dropbox folder without requiring code compilation.
 - adds tests for the http flow
+- blog live updates with SSE or websockets
 - allow articles to be published in the future
