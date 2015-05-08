@@ -83,7 +83,8 @@ go test ./...
 This project is licensed under a Simplified BSD license. Please read the [LICENSE file](https://github.com/tejo/boxed/blob/master/LICENSE).
 
 ### TODO & Development
-- allowing look and feel customization from dropbox folder without requiring code compilation.
-- adds tests for the http flow
+- make onboarding easier
+- allow look and feel customization from dropbox folder without requiring code compilation.
+- add tests for the http flow
 - blog live updates with SSE or websockets
 - allow articles to be published in the future
