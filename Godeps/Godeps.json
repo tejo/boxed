@@ -1,25 +1,24 @@
 {
 	"ImportPath": "github.com/tejo/boxed",
-	"GoVersion": "go1.4",
+	"GoVersion": "go1.6",
+	"GodepVersion": "v62",
 	"Deps": [
-		{
-			"ImportPath": "code.google.com/p/cascadia",
-			"Comment": "null-30",
-			"Rev": "4f03c71bc42ba0015a68bea86422f0ecbb71bf70"
-		},
-		{
-			"ImportPath": "code.google.com/p/go.net/html",
-			"Comment": "null-138",
-			"Rev": "aa2854272bd57c4e2eedca828d3bbb5851018518"
-		},
 		{
 			"ImportPath": "github.com/GeertJohan/go.rice",
 			"Rev": "42fe5e1e4e358b413e3e1a7b2243ec8599209107"
 		},
 		{
+			"ImportPath": "github.com/GeertJohan/go.rice/embedded",
+			"Rev": "42fe5e1e4e358b413e3e1a7b2243ec8599209107"
+		},
+		{
 			"ImportPath": "github.com/PuerkitoBio/goquery",
-			"Comment": "v0.3.2-30-g12a8512",
-			"Rev": "12a851277896ab3921778fea9543634284691034"
+			"Comment": "v0.3.2-86-g2e29ea4",
+			"Rev": "2e29ea41f0d13f4a303c75553f4eeadddc7a4c56"
+		},
+		{
+			"ImportPath": "github.com/andybalholm/cascadia",
+			"Rev": "3ad29d1ad1c4f2023e355603324348cf1f4b2d48"
 		},
 		{
 			"ImportPath": "github.com/boltdb/bolt",
@@ -33,7 +32,7 @@
 		},
 		{
 			"ImportPath": "github.com/daaku/go.zipexe",
-			"Rev": "4de5c18ca1fc5294fee64721094ca90c46d26405"
+			"Rev": "a5fe2436ffcb3236e175e5149162b41cd28bd27d"
 		},
 		{
 			"ImportPath": "github.com/gorilla/context",
@@ -57,7 +56,7 @@
 		},
 		{
 			"ImportPath": "github.com/kardianos/osext",
-			"Rev": "efacde03154693404c65e7aa7d461ac9014acd0c"
+			"Rev": "8fef92e41e22a70e700a96b29f066cda30ea24ef"
 		},
 		{
 			"ImportPath": "github.com/markbates/going/wait",
@@ -65,7 +64,7 @@
 		},
 		{
 			"ImportPath": "github.com/microcosm-cc/bluemonday",
-			"Rev": "fcd0f5074e55df204568c7419509fb59ddcad228"
+			"Rev": "4ac6f27528d0a3f2a59e0b0a6f6b3ff0bb89fe20"
 		},
 		{
 			"ImportPath": "github.com/russross/blackfriday",
@@ -78,7 +77,11 @@
 		},
 		{
 			"ImportPath": "golang.org/x/net/html",
-			"Rev": "8b2d0ae1f4c3b83c10ff17e89a89ff04cc0903c3"
+			"Rev": "b797637b7aeeed133049c7281bfa31dcc9ca42d6"
+		},
+		{
+			"ImportPath": "golang.org/x/net/html/atom",
+			"Rev": "b797637b7aeeed133049c7281bfa31dcc9ca42d6"
 		}
 	]
 }
