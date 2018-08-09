@@ -1,3 +1,5 @@
+## [NO LONGER ACTIVE]
+
 ## Boxed
 
 A Dropbox based blog engine
